@@ -24,7 +24,7 @@ public class CenterPanel extends JPanel implements Navbar.NavbarListener {
         setLayout(new BorderLayout());
 
         Navbar navbar = new Navbar(this);
-        contentPanel = new Vendor();
+        contentPanel = new Stock();
         centerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, navbar, contentPanel);
         add(centerSplitPane, BorderLayout.CENTER);
     }

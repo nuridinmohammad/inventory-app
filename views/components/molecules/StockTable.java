@@ -23,20 +23,18 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Date;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.swing.border.EmptyBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 public class StockTable extends JPanel {
 
     private JTable table;
     private DefaultTableModel tableModel;
+    private StockFilter stockFilter;
 
     private PopRowMenu popupMenu;
     private String[] columnNames;
@@ -51,6 +49,7 @@ public class StockTable extends JPanel {
         tableModel = createTableModel();
         this.stockController = new StockController(new StockDAOImpl());
         table = createTable(tableModel);
+        stockFilter = new StockFilter();
 
         table.setFont(new Font("Arial", Font.BOLD, 14));
         table.setRowHeight(30);
@@ -63,7 +62,7 @@ public class StockTable extends JPanel {
         }
 
         JScrollPane scrollPane = new JScrollPane(table);
-        JSplitPane tableSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new StockFilter(), scrollPane);
+        JSplitPane tableSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, stockFilter, scrollPane);
         tableSplitPane.setDividerLocation(50);
         add(tableSplitPane, BorderLayout.CENTER);
 
@@ -108,6 +107,28 @@ public class StockTable extends JPanel {
             }
         });
 
+        stockFilter.getSearchButton().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String searchValue = stockFilter.getSearchField().getText();
+                CategoryEntity categoryValue = (CategoryEntity) stockFilter.getCategoryComboBox().getSelectedItem();
+
+                if (!searchValue.isEmpty()) {
+                    searchValue = searchValue;
+                } else {
+                    searchValue = null;
+                }
+
+                if (categoryValue != null && categoryValue.getId() == 0) {
+                    categoryValue = null;
+                }
+
+                List<StockEntity> stocks = stockController.getAllStocksStatic(searchValue, categoryValue);
+                loadTableData(stocks);
+
+            }
+        });
+
         loadInitialData();
 
     }
@@ -125,8 +146,7 @@ public class StockTable extends JPanel {
                 stock.getProductId(),
                 stock.getProductName(),
                 stock.getAmount(),
-                stock.getCategoryName(),
-            };
+                stock.getCategoryName(),};
 
             tableModel.addRow(rowData);
         }

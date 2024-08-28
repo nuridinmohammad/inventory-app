@@ -2,6 +2,7 @@ package com.multibahana.inventoryapp.controllers;
 
 import com.multibahana.inventoryapp.entities.StockEntity;
 import com.multibahana.inventoryapp.dao.StockDAO;
+import com.multibahana.inventoryapp.entities.CategoryEntity;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -47,6 +48,16 @@ public class StockController {
     public List<StockEntity> getAllStocksStatic() {
         try {
             return stockDAO.getAllStocksStatic();
+        } catch (SQLException e) {
+            System.err.println("Error listing stocks: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public List<StockEntity> getAllStocksStatic(String product, CategoryEntity categoryEntity) {
+        try {
+            return stockDAO.getAllStocksStatic(product, categoryEntity);
         } catch (SQLException e) {
             System.err.println("Error listing stocks: " + e.getMessage());
             e.printStackTrace();

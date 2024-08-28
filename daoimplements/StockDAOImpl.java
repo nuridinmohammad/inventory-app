@@ -3,6 +3,8 @@ package com.multibahana.inventoryapp.daoimplements;
 import com.multibahana.inventoryapp.dao.StockDAO;
 import com.multibahana.inventoryapp.entities.StockEntity;
 import com.multibahana.inventoryapp.config.Database;
+import com.multibahana.inventoryapp.entities.CategoryEntity;
+import com.multibahana.inventoryapp.entities.ProductEntity;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -107,11 +109,59 @@ public class StockDAOImpl implements StockDAO {
 
             while (rs.next()) {
                 stocks.add(new StockEntity(
-                        rs.getInt("product_id"), 
-                        rs.getString("product_name"), 
-                        rs.getInt("total_amount"), 
-                        rs.getString("category") 
+                        rs.getInt("product_id"),
+                        rs.getString("product_name"),
+                        rs.getInt("total_amount"),
+                        rs.getString("category")
                 ));
+            }
+        }
+
+        return stocks;
+    }
+
+    @Override
+    public List<StockEntity> getAllStocksStatic(String productEntity, CategoryEntity categoryEntity) throws SQLException {
+        List<StockEntity> stocks = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+                "SELECT p.id AS product_id, p.name AS product_name, SUM(s.amount) AS total_amount, c.name AS category "
+                + "FROM stocks s "
+                + "JOIN products p ON p.id = s.product_id "
+                + "JOIN categories c ON c.id = p.category_id "
+        );
+
+        List<Object> params = new ArrayList<>();
+
+        boolean whereAdded = false;
+        if (productEntity != null && !productEntity.isEmpty()) {
+            sql.append("WHERE LOWER(p.name) LIKE ? ");
+            params.add("%" + productEntity + "%");
+            whereAdded = true;
+        }
+        if (categoryEntity != null) {
+            sql.append(whereAdded ? "AND " : "WHERE ").append("c.id = ? ");
+            params.add(categoryEntity.getId());
+        }
+
+        sql.append("GROUP BY p.id, p.name, c.name ");
+        sql.append("ORDER BY total_amount DESC");
+
+        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    stocks.add(new StockEntity(
+                            rs.getInt("product_id"),
+                            rs.getString("product_name"),
+                            rs.getInt("total_amount"),
+                            rs.getString("category")
+                    ));
+                }
             }
         }
 
