@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VendorDAOImpl implements VendorDAO {
-    
+
     @Override
     public void addVendor(VendorEntity vendor) throws SQLException {
         String sql = "INSERT INTO vendors (name, address) VALUES (?, ?)";
@@ -29,9 +29,9 @@ public class VendorDAOImpl implements VendorDAO {
 
             if (rs.next()) {
                 return new VendorEntity(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("address")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("address")
                 );
             }
         }
@@ -42,18 +42,54 @@ public class VendorDAOImpl implements VendorDAO {
     public List<VendorEntity> getAllVendors() throws SQLException {
         List<VendorEntity> vendors = new ArrayList<>();
         String sql = "SELECT * FROM vendors";
-        try (Statement stmt = Database.getConnection().createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (Statement stmt = Database.getConnection().createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 VendorEntity vendor = new VendorEntity(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("address")
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("address")
                 );
                 vendors.add(vendor);
             }
         }
+        return vendors;
+    }
+
+    @Override
+    public List<VendorEntity> getAllVendors(String name, String address) throws SQLException {
+        List<VendorEntity> vendors = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM vendors WHERE 1=1");
+
+        if (name != null && !name.isEmpty()) {
+            sql.append(" AND LOWER(name) LIKE ?");
+        }
+        if (address != null && !address.isEmpty()) {
+            sql.append(" AND LOWER(address) LIKE ?");
+        }
+
+        try (PreparedStatement stmt = Database.getConnection().prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+
+            if (name != null && !name.isEmpty()) {
+                stmt.setString(paramIndex++, "%" + name.toLowerCase() + "%");
+            }
+            if (address != null && !address.isEmpty()) {
+                stmt.setString(paramIndex++, "%" + address.toLowerCase() + "%");
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    VendorEntity vendor = new VendorEntity(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("address")
+                    );
+                    vendors.add(vendor);
+                }
+            }
+        }
+
         return vendors;
     }
 

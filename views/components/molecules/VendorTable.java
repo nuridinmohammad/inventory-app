@@ -21,6 +21,7 @@ public class VendorTable extends JPanel {
     private VendorController vendorController;
     private PopRowMenu popupMenu;
     private VendorEntity selectedVendor;
+    private VendorFilter vendorFilter;
 
     public VendorTable() {
         setLayout(new BorderLayout());
@@ -29,6 +30,7 @@ public class VendorTable extends JPanel {
         tableModel = createTableModel();
         table = createTable(tableModel);
         popupMenu = new PopRowMenu();
+        vendorFilter = new VendorFilter();
 
         JScrollPane scrollPane = new JScrollPane(table);
         JSplitPane tableSplitPane = createSplitPane(scrollPane);
@@ -85,6 +87,27 @@ public class VendorTable extends JPanel {
                 showWarning("Please select a row to delete");
             }
         });
+
+        vendorFilter.getSearchButton().addActionListener(e -> {
+            String name = vendorFilter.getSearchNameField().getText();
+            String address = vendorFilter.getSearchAddressField().getText();
+
+            if (!name.isEmpty()) {
+                name = name;
+            } else {
+                name = null;
+            }
+            
+            if (!address.isEmpty()) {
+                address = address;
+            } else {
+                address = null;
+            }
+
+            List<VendorEntity> vendors = vendorController.getAllVendors(name, address);
+            loadTableData(vendors);
+
+        });
     }
 
     private VendorEntity getVendorFromRow(int rowIndex) {
@@ -123,7 +146,6 @@ public class VendorTable extends JPanel {
     }
 
     private JSplitPane createSplitPane(JScrollPane scrollPane) {
-        VendorFilter vendorFilter = new VendorFilter();
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, vendorFilter, scrollPane);
         splitPane.setDividerLocation(50);
         return splitPane;

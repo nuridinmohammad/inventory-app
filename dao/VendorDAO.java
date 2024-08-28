@@ -11,6 +11,8 @@ public interface VendorDAO {
     VendorEntity getVendorById(Integer id) throws SQLException;
 
     List<VendorEntity> getAllVendors() throws SQLException;
+    
+    List<VendorEntity> getAllVendors(String name, String address) throws SQLException;
 
     void updateVendor(VendorEntity vendor) throws SQLException;
 

@@ -40,6 +40,15 @@ public class VendorController {
         return null;
     }
     
+    public List<VendorEntity> getAllVendors(String name, String address) {
+        try {
+            return vendorDAO.getAllVendors(name, address);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     public void updateVendor(VendorEntity vendor) {
         try {
             vendorDAO.updateVendor(vendor);

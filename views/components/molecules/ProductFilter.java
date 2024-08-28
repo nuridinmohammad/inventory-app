@@ -45,7 +45,7 @@ public class ProductFilter extends JPanel {
 
         CategoryController categoryController = new CategoryController(new CategoryDAOImpl());
         Map<Integer, CategoryEntity> categories = categoryController.getAllCategories();
-        
+
         DefaultComboBoxModel<CategoryEntity> categoryModel = new DefaultComboBoxModel<>();
         categoryComboBox = new JComboBox<>();
         categoryModel.addElement(new CategoryEntity(0, "-- Select category --"));
@@ -55,29 +55,19 @@ public class ProductFilter extends JPanel {
 
         searchButton = new JButton("Search");
 
-        JPanel searchPanel = new JPanel();
-        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
-        searchPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        JPanel searchPanel = createPanel();
         searchPanel.add(searchField);
 
-        JPanel minPanel = new JPanel();
-        minPanel.setLayout(new BoxLayout(minPanel, BoxLayout.Y_AXIS));
-        minPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        JPanel minPanel = createPanel();
         minPanel.add(minField);
 
-        JPanel maxPanel = new JPanel();
-        maxPanel.setLayout(new BoxLayout(maxPanel, BoxLayout.Y_AXIS));
-        maxPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        JPanel maxPanel = createPanel();
         maxPanel.add(maxField);
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
-        buttonPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        JPanel buttonPanel =createPanel();
         buttonPanel.add(searchButton);
 
-        JPanel categoryPanel = new JPanel();
-        categoryPanel.setLayout(new BoxLayout(categoryPanel, BoxLayout.Y_AXIS));
-        categoryPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        JPanel categoryPanel = createPanel();
         categoryPanel.add(categoryComboBox);
 
         add(searchLabel);
@@ -109,5 +99,12 @@ public class ProductFilter extends JPanel {
 
     public JComboBox<CategoryEntity> getCategoryComboBox() {
         return categoryComboBox;
+    }
+
+    private JPanel createPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        return panel;
     }
 }
