@@ -21,6 +21,11 @@ public class VendorEntity {
         this.id = id;
     }
 
+    public VendorEntity(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public VendorEntity() {
     }
 

@@ -3,20 +3,16 @@ package com.multibahana.inventoryapp.views.components.molecules;
 import com.multibahana.inventoryapp.controllers.CategoryController;
 import com.multibahana.inventoryapp.daoimplements.CategoryDAOImpl;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
-import com.toedter.calendar.JDateChooser;
 import java.awt.Font;
 import java.util.Map;
 import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
 public class StockFilter extends JPanel {

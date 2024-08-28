@@ -1,20 +1,10 @@
 package com.multibahana.inventoryapp.views.components.molecules;
 
-import com.multibahana.inventoryapp.context.LeftPanelContext;
-import com.multibahana.inventoryapp.controllers.CategoryController;
-import com.multibahana.inventoryapp.controllers.ProductController;
 import com.multibahana.inventoryapp.controllers.StockController;
-import com.multibahana.inventoryapp.controllers.VendorController;
-import com.multibahana.inventoryapp.daoimplements.CategoryDAOImpl;
-import com.multibahana.inventoryapp.daoimplements.ProductDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.StockDAOImpl;
-import com.multibahana.inventoryapp.daoimplements.VendorDAOImpl;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
-import com.multibahana.inventoryapp.entities.ProductEntity;
 import com.multibahana.inventoryapp.entities.StockEntity;
-import com.multibahana.inventoryapp.entities.VendorEntity;
 import com.multibahana.inventoryapp.views.components.atoms.PopRowMenu;
-import com.toedter.calendar.JDateChooser;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -28,7 +18,6 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Date;
 
 public class StockTable extends JPanel {
 
@@ -125,7 +114,6 @@ public class StockTable extends JPanel {
 
                 List<StockEntity> stocks = stockController.getAllStocksStatic(searchValue, categoryValue);
                 loadTableData(stocks);
-
             }
         });
 

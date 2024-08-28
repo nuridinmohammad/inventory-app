@@ -1,13 +1,11 @@
 package com.multibahana.inventoryapp.views.components.molecules;
 
-import com.multibahana.inventoryapp.context.LeftPanelContext;
 import com.multibahana.inventoryapp.controllers.ProductController;
 import com.multibahana.inventoryapp.controllers.StockController;
 import com.multibahana.inventoryapp.controllers.VendorController;
 import com.multibahana.inventoryapp.daoimplements.ProductDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.StockDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.VendorDAOImpl;
-import com.multibahana.inventoryapp.entities.CategoryEntity;
 import com.multibahana.inventoryapp.entities.ProductEntity;
 import com.multibahana.inventoryapp.entities.StockEntity;
 import com.multibahana.inventoryapp.entities.VendorEntity;
@@ -21,6 +19,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -28,8 +28,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.border.EmptyBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 public class ReceiptTable extends JPanel {
 
@@ -39,6 +37,7 @@ public class ReceiptTable extends JPanel {
     private PopRowMenu popupMenu;
     private String[] columnNames;
     private StockController stockController;
+    private ReceiptFilter receiptFilter;
 
     public ReceiptTable() {
         setLayout(new BorderLayout());
@@ -49,6 +48,7 @@ public class ReceiptTable extends JPanel {
         tableModel = createTableModel();
         this.stockController = new StockController(new StockDAOImpl());
         table = createTable(tableModel);
+        receiptFilter = new ReceiptFilter();
 
         table.setFont(new Font("Arial", Font.BOLD, 14));
         table.setRowHeight(30);
@@ -61,7 +61,7 @@ public class ReceiptTable extends JPanel {
         }
 
         JScrollPane scrollPane = new JScrollPane(table);
-        JSplitPane tableSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new ReciptFilter(), scrollPane);
+        JSplitPane tableSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, receiptFilter, scrollPane);
         tableSplitPane.setDividerLocation(50);
         add(tableSplitPane, BorderLayout.CENTER);
 
@@ -130,6 +130,32 @@ public class ReceiptTable extends JPanel {
             }
         });
 
+        receiptFilter.getSearchButton().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String noEvidenceField = receiptFilter.getSearchField().getText();
+                Date dateValue = receiptFilter.getDateChooser().getDate();
+                VendorEntity vendorValue = (VendorEntity) receiptFilter.getVendorComboBox().getSelectedItem();
+
+                if (!noEvidenceField.isEmpty()) {
+                    noEvidenceField = noEvidenceField;
+                } else {
+                    noEvidenceField = null;
+                }
+
+                if (vendorValue != null && vendorValue.getId() == 0) {
+                    vendorValue = null;
+                }
+
+                if (dateValue != null) {
+                    dateValue = dateValue;
+                }
+
+                List<StockEntity> stocks = stockController.getAllStocks(noEvidenceField, dateValue, vendorValue);
+                loadTableData(stocks);
+            }
+        });
+
         loadInitialData();
 
     }
@@ -161,7 +187,7 @@ public class ReceiptTable extends JPanel {
                 stock.getDateReceipt(),
                 stock.getNoEvidence(),
                 product != null ? product : "Unknown Product",
-//                stock.getAmount(),
+                //                stock.getAmount(),
                 vendor != null ? vendor : "Unknown Vendor"};
 
             tableModel.addRow(rowData);
@@ -210,10 +236,10 @@ public class ReceiptTable extends JPanel {
             idField.setEditable(false);
             idField.setFont(font);
             idField.setBorder(padding);
-            
+
             JDateChooser dateChooser = new JDateChooser(date);
             dateChooser.setDateFormatString("yyyy-MM-dd");
-            
+
             JTextField noEvidenceField = new JTextField(noEvidence);
             noEvidenceField.setFont(font);
             noEvidenceField.setBorder(padding);
@@ -277,10 +303,10 @@ public class ReceiptTable extends JPanel {
                         );
                         continue;
                     }
-                    
+
                     StockController stockController = new StockController(new StockDAOImpl());
                     stockController.updateStock(new StockEntity(id, newNoEvidence, newDate, newAmount, product.getId(), vendor.getId()));
-                    
+
                     JOptionPane.showMessageDialog(
                             this,
                             "Item updated successfully!",
