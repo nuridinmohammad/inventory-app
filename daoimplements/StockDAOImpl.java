@@ -5,6 +5,7 @@ import com.multibahana.inventoryapp.entities.StockEntity;
 import com.multibahana.inventoryapp.config.Database;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
 import com.multibahana.inventoryapp.entities.ProductEntity;
+import com.multibahana.inventoryapp.entities.VendorEntity;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -70,6 +71,52 @@ public class StockDAOImpl implements StockDAO {
                 ));
             }
         }
+        return stocks;
+    }
+
+    @Override
+    public List<StockEntity> getAllStocks(String noEvidenceField, java.util.Date date, VendorEntity vendorEntity) throws SQLException {
+        List<StockEntity> stocks = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT s.id, s.no_evidence, s.date, s.amount, s.product_id, s.vendor_id "
+                + "FROM stocks s JOIN products p ON p.id = s.product_id WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (noEvidenceField != null && !noEvidenceField.isEmpty()) {
+            sql.append(" AND (LOWER(s.no_evidence) LIKE ? OR LOWER(p.name) LIKE ?)");
+            params.add("%" + noEvidenceField.toLowerCase() + "%");
+            params.add("%" + noEvidenceField.toLowerCase() + "%");
+        }
+
+        if (date != null) {
+            sql.append(" AND s.date = ?");
+            params.add(new java.sql.Date(date.getTime()));
+        }
+
+        if (vendorEntity != null) {
+            sql.append(" AND s.vendor_id = ?");
+            params.add(vendorEntity.getId());
+        }
+
+        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    stocks.add(new StockEntity(
+                            rs.getInt("id"),
+                            rs.getString("no_evidence"),
+                            rs.getDate("date"),
+                            rs.getInt("amount"),
+                            rs.getInt("product_id"),
+                            rs.getInt("vendor_id")
+                    ));
+                }
+            }
+        }
+
         return stocks;
     }
 

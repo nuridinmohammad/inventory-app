@@ -3,6 +3,7 @@ package com.multibahana.inventoryapp.controllers;
 import com.multibahana.inventoryapp.entities.StockEntity;
 import com.multibahana.inventoryapp.dao.StockDAO;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
+import com.multibahana.inventoryapp.entities.VendorEntity;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,6 +39,16 @@ public class StockController {
     public List<StockEntity> getAllStocks() {
         try {
             return stockDAO.getAllStocks();
+        } catch (SQLException e) {
+            System.err.println("Error listing stocks: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public List<StockEntity> getAllStocks(String noEvidenceField, java.util.Date date, VendorEntity vendorEntity){
+        try {
+            return stockDAO.getAllStocks(noEvidenceField, date, vendorEntity);
         } catch (SQLException e) {
             System.err.println("Error listing stocks: " + e.getMessage());
             e.printStackTrace();
