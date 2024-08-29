@@ -90,7 +90,7 @@ public class ReceiptForm extends JPanel {
     private void configureButton(JButton button) {
         button.setOpaque(false);
         button.setContentAreaFilled(false);
-        button.setBorderPainted(false);
+//        button.setBorderPainted(false);
         button.setFont(new Font("Arial", Font.BOLD, 12));
         button.setForeground(Color.BLUE);
         button.setPreferredSize(new Dimension(25, button.getPreferredSize().height));

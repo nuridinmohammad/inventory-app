@@ -7,19 +7,19 @@ import java.awt.Color;
 import java.awt.Font;
 import javax.swing.JButton;
 import javax.swing.BoxLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Navbar extends JPanel {
 
-    private String navbarItem;
-    private NavbarListener listener;
     private List<JButton> buttons;
+    private JButton toSaleButton;
+    private JButton toProductButton;
+    private JButton toReceiptButton;
+    private JButton toVendorButton;
+    private JButton toStockButton;
 
-    public Navbar(NavbarListener listener) {
-        this.listener = listener;
+    public Navbar() {
         this.buttons = new ArrayList<>();
         setLayout(new BorderLayout());
 
@@ -28,20 +28,20 @@ public class Navbar extends JPanel {
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
         buttonsPanel.setOpaque(false);
 
-        JButton toSale = createButton("Sales");
-        buttonsPanel.add(toSale);
+        toSaleButton = createButton("Sales");
+        buttonsPanel.add(toSaleButton);
 
-        JButton toProduct = createButton("Product");
-        buttonsPanel.add(toProduct);
+        toProductButton = createButton("Product");
+        buttonsPanel.add(toProductButton);
 
-        JButton toReceipt = createButton("Receipt");
-        buttonsPanel.add(toReceipt);
+        toReceiptButton = createButton("Receipt");
+        buttonsPanel.add(toReceiptButton);
 
-        JButton toVendor = createButton("Vendor");
-        buttonsPanel.add(toVendor);
+        toVendorButton = createButton("Vendor");
+        buttonsPanel.add(toVendorButton);
 
-        JButton toStock = createButton("Stock");
-        buttonsPanel.add(toStock);
+        toStockButton = createButton("Stock");
+        buttonsPanel.add(toStockButton);
 
         add(buttonsPanel, BorderLayout.EAST);
         setBackground(Color.DARK_GRAY);
@@ -57,17 +57,6 @@ public class Navbar extends JPanel {
 
         buttons.add(button);
 
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                navbarItem = button.getText();
-                updateButtonColors(button);
-                if (listener != null) {
-                    listener.onNavbarItemSelected(navbarItem);
-                }
-            }
-        });
-
         return button;
     }
 
@@ -81,7 +70,28 @@ public class Navbar extends JPanel {
         }
     }
 
-    public interface NavbarListener {
-        void onNavbarItemSelected(String navbarItem);
+    // Getters for the buttons
+    public JButton getToSaleButton() {
+        return toSaleButton;
+    }
+
+    public JButton getToProductButton() {
+        return toProductButton;
+    }
+
+    public JButton getToReceiptButton() {
+        return toReceiptButton;
+    }
+
+    public JButton getToVendorButton() {
+        return toVendorButton;
+    }
+
+    public JButton getToStockButton() {
+        return toStockButton;
+    }
+
+    public List<JButton> getButtons() {
+        return buttons;
     }
 }

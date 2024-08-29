@@ -1,7 +1,5 @@
 package com.multibahana.inventoryapp.views.components.molecules;
 
-import com.multibahana.inventoryapp.controllers.VendorController;
-import com.multibahana.inventoryapp.daoimplements.VendorDAOImpl;
 import com.multibahana.inventoryapp.entities.VendorEntity;
 import com.multibahana.inventoryapp.views.components.atoms.PopRowMenu;
 import javax.swing.*;
@@ -13,35 +11,38 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.border.EmptyBorder;
 
-public class VendorTable extends JPanel {
+public class SaleTable extends JPanel {
 
     private final JTable table;
     private final DefaultTableModel tableModel;
-    private VendorController vendorController;
+//    private VendorController vendorController;
     private PopRowMenu popupMenu;
-    private VendorEntity selectedVendor;
-    private VendorFilter vendorFilter;
+//    private VendorEntity selectedVendor;
+    private SaleFilter saleFilter;
 
-    public VendorTable() {
+    public SaleTable() {
         setLayout(new BorderLayout());
-        this.vendorController = new VendorController(new VendorDAOImpl());
+//        this.vendorController = new VendorController(new VendorDAOImpl());
 
         tableModel = createTableModel();
         table = createTable(tableModel);
         popupMenu = new PopRowMenu();
-        vendorFilter = new VendorFilter();
+        saleFilter = new SaleFilter();
 
         JScrollPane scrollPane = new JScrollPane(table);
-        JSplitPane tableSplitPane = createSplitPane(scrollPane);
 
-        add(tableSplitPane, BorderLayout.CENTER);
+        
+        JSplitPane tableSplitPane = createSplitPane(scrollPane);
+        JSplitPane footerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableSplitPane, new SaleFooter());
+
+        add(footerSplitPane, BorderLayout.CENTER);
         loadInitialData();
 
         table.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow >= 0) {
-                    selectedVendor = getVendorFromRow(selectedRow);
+//                    selectedVendor = getVendorFromRow(selectedRow);
 
                 }
             }
@@ -87,26 +88,26 @@ public class VendorTable extends JPanel {
             }
         });
 
-        vendorFilter.getSearchButton().addActionListener(e -> {
-            String name = vendorFilter.getSearchNameField().getText();
-            String address = vendorFilter.getSearchAddressField().getText();
-
-            if (!name.isEmpty()) {
-                name = name;
-            } else {
-                name = null;
-            }
-            
-            if (!address.isEmpty()) {
-                address = address;
-            } else {
-                address = null;
-            }
-
-            List<VendorEntity> vendors = vendorController.getAllVendors(name, address);
-            loadTableData(vendors);
-
-        });
+        /*        saleFilter.getSearchButton().addActionListener(e -> {
+        String name = saleFilter.getSearchNameField().getText();
+        String address = saleFilter.getSearchAddressField().getText();
+        
+        if (!name.isEmpty()) {
+        name = name;
+        } else {
+        name = null;
+        }
+        
+        if (!address.isEmpty()) {
+        address = address;
+        } else {
+        address = null;
+        }
+        
+        List<VendorEntity> vendors = vendorController.getAllVendors(name, address);
+        loadTableData(vendors);
+        
+        });*/
     }
 
     private VendorEntity getVendorFromRow(int rowIndex) {
@@ -116,12 +117,11 @@ public class VendorTable extends JPanel {
         return new VendorEntity(id, name, address);
     }
 
-    public VendorEntity getSelectedVendor() {
-        return selectedVendor;
-    }
-
+    /*    public VendorEntity getSelectedVendor() {
+    return selectedVendor;
+    }*/
     private DefaultTableModel createTableModel() {
-        String[] columnNames = {"ID", "Name", "Address"};
+        String[] columnNames = {"Product name", "Price", "Qty", "Total"};
         return new DefaultTableModel(columnNames, 0);
     }
 
@@ -145,14 +145,14 @@ public class VendorTable extends JPanel {
     }
 
     private JSplitPane createSplitPane(JScrollPane scrollPane) {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, vendorFilter, scrollPane);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, saleFilter, scrollPane);
         splitPane.setDividerLocation(50);
         return splitPane;
     }
 
     private void loadInitialData() {
-        List<VendorEntity> vendors = vendorController.getAllVendors();
-        loadTableData(vendors);
+//        List<VendorEntity> vendors = vendorController.getAllVendors();
+//        loadTableData(vendors);
     }
 
     public void loadTableData(List<VendorEntity> vendors) {
@@ -162,6 +162,7 @@ public class VendorTable extends JPanel {
 
             Object[] rowData = {
                 vendor.getId(),
+                vendor.getName(),
                 vendor.getName(),
                 vendor.getAddress()};
 
@@ -237,7 +238,7 @@ public class VendorTable extends JPanel {
                     }
 
                     VendorEntity updatedVendor = new VendorEntity(id, newName, newAddress);
-                    vendorController.updateVendor(updatedVendor);
+//                    vendorController.updateVendor(updatedVendor);
 
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     model.setValueAt(newName, selectedRow, 1);
@@ -268,7 +269,7 @@ public class VendorTable extends JPanel {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 Integer id = (Integer) table.getValueAt(selectedRow, 0);
-                vendorController.deleteVendor(id);
+//                vendorController.deleteVendor(id);
 
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 model.removeRow(selectedRow);
@@ -282,8 +283,8 @@ public class VendorTable extends JPanel {
 
     private void refreshItems() {
         try {
-            List<VendorEntity> vendors = vendorController.getAllVendors();
-            loadTableData(vendors);
+//            List<VendorEntity> vendors = vendorController.getAllVendors();
+//            loadTableData(vendors);
             showSuccess("All items are successfully refresh");
         } catch (Exception e) {
             showError("All items are failed refresh");
