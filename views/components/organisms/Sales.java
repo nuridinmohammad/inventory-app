@@ -24,7 +24,7 @@ public class Sales extends JPanel {
         tables = new SaleTable();
         
         JPanel salesPanel = new JPanel(new BorderLayout());
-        salesPanel.add(new TitleCenter("SALES"), BorderLayout.CENTER);
+        salesPanel.add(new TitleCenter("SALES (Comming soon)"), BorderLayout.CENTER);
 //        salesPanel.add(new SaleFilter(), BorderLayout.SOUTH);
 
         JSplitPane salesSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, salesPanel, tables);

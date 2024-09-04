@@ -13,16 +13,15 @@ import com.multibahana.inventoryapp.dao.CategoryRelationDAO;
 public class CategoryRelationDAOImpl implements CategoryRelationDAO {
 
     @Override
-   public void addCategoryRelation(CategoryRelationEntity relation) throws SQLException {
-    String sql = "INSERT INTO category_relations (ancestor_id, descendant_id, name) VALUES (?, ?, ?)";
-    try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        pstmt.setInt(1, relation.getAncestorId());
-        pstmt.setInt(2, relation.getDescendantId());
-        pstmt.setString(3, relation.getName());
-        pstmt.executeUpdate();
+    public void addCategoryRelation(CategoryRelationEntity relation) throws SQLException {
+        String sql = "INSERT INTO category_relations (ancestor_id, descendant_id, name) VALUES (?, ?, ?)";
+        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, relation.getAncestorId());
+            pstmt.setInt(2, relation.getDescendantId());
+            pstmt.setString(3, relation.getName());
+            pstmt.executeUpdate();
+        }
     }
-}
-
 
     @Override
     public CategoryRelationEntity getCategoryRelationByIds(Integer ancestorId, Integer descendantId) throws SQLException {
@@ -94,4 +93,5 @@ public class CategoryRelationDAOImpl implements CategoryRelationDAO {
             pstmt.executeUpdate();
         }
     }
+
 }

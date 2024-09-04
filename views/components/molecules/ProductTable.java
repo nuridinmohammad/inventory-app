@@ -1,6 +1,5 @@
 package com.multibahana.inventoryapp.views.components.molecules;
 
-import com.multibahana.inventoryapp.context.LeftPanelContext;
 import com.multibahana.inventoryapp.controllers.CategoryController;
 import com.multibahana.inventoryapp.controllers.ProductController;
 import com.multibahana.inventoryapp.daoimplements.CategoryDAOImpl;
@@ -18,8 +17,6 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
 import javax.swing.border.EmptyBorder;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 public class ProductTable extends JPanel {
 
@@ -98,39 +95,33 @@ public class ProductTable extends JPanel {
 
         productFilter.getSearchButton().addActionListener(e -> {
             String searchValue = productFilter.getSearchField().getText().trim();
-            String minValue = productFilter.getMinField().getText().trim();
-            String maxValue = productFilter.getMaxField().getText().trim();
+            /*  String minValue = productFilter.getMinField().getText().trim();
+            String maxValue = productFilter.getMaxField().getText().trim();*/
             CategoryEntity categoryValue = (CategoryEntity) productFilter.getCategoryComboBox().getSelectedItem();
 
-            Integer min = null;
-            Integer max = null;
-
-            try {
-                if (!searchValue.isEmpty()) {
-                    searchValue = searchValue;
-                } else {
-                    searchValue = null;
-                }
-
-                if (!minValue.isEmpty()) {
-                    min = Integer.valueOf(minValue);
-                }
-
-                if (!maxValue.isEmpty()) {
-                    max = Integer.valueOf(maxValue);
-                }
-
-                if (categoryValue != null && categoryValue.getId() == 0) {
-                    categoryValue = null;
-                }
-
-                List<ProductEntity> products = productController.getAllProducts(searchValue, min, max, categoryValue);
-                loadTableData(products);
-
-            } catch (NumberFormatException ex) {
-                ex.printStackTrace();
-                showWarning("Min/Max value must be a valid number.");
+            /*Integer min = null;
+            Integer max = null;*/
+            if (!searchValue.isEmpty()) {
+                searchValue = searchValue;
+            } else {
+                searchValue = null;
             }
+            /*
+                if (!minValue.isEmpty()) {
+                min = Integer.valueOf(minValue);
+                }
+                
+                if (!maxValue.isEmpty()) {
+                max = Integer.valueOf(maxValue);
+                }*/
+
+            if (categoryValue != null && categoryValue.getId() == 0) {
+                categoryValue = null;
+            }
+
+            List<ProductEntity> products = productController.getAllProducts(searchValue, categoryValue);
+            loadTableData(products);
+
         });
 
         loadInitialData();
@@ -138,10 +129,30 @@ public class ProductTable extends JPanel {
 
     private ProductEntity getProductFromRow(int rowIndex) {
         Integer id = (Integer) table.getValueAt(rowIndex, 0);
-        String name = (String) table.getValueAt(rowIndex, 1);
-        Double price = (Double) table.getValueAt(rowIndex, 2);
-        CategoryEntity categoryEntity = (CategoryEntity) table.getValueAt(rowIndex, 3);
-        return new ProductEntity(id, name, price, categoryEntity.getId());
+        String name = (String) table.getValueAt(rowIndex, 2);
+
+        Double price = null;
+        Object priceObj = table.getValueAt(rowIndex, 3);
+        if (priceObj instanceof Double) {
+            price = (Double) priceObj;
+        } else if (priceObj instanceof String) {
+            price = Double.parseDouble((String) priceObj);
+        }
+
+        CategoryEntity categoryEntity = (CategoryEntity) table.getValueAt(rowIndex, 6);
+
+        Integer stock = (Integer) table.getValueAt(rowIndex, 5);
+        String productCode = (String) table.getValueAt(rowIndex, 1);
+
+        Double sellPrice = null;
+        Object sellPriceObj = table.getValueAt(rowIndex, 4);
+        if (sellPriceObj instanceof Double) {
+            sellPrice = (Double) sellPriceObj;
+        } else if (sellPriceObj instanceof String) {
+            sellPrice = Double.parseDouble((String) sellPriceObj);
+        }
+
+        return new ProductEntity(id, name, price, stock, categoryEntity.getId(), productCode, sellPrice);
     }
 
     public ProductEntity getSelectedProduct() {
@@ -149,7 +160,7 @@ public class ProductTable extends JPanel {
     }
 
     private DefaultTableModel createTableModel() {
-        String[] columnNames = {"ID", "Name", "Price", "Category"};
+        String[] columnNames = {"id", "Product code", "Name", "Buy price", "Sell price", "Stock", "Category"};
         return new DefaultTableModel(columnNames, 0);
     }
 
@@ -164,6 +175,10 @@ public class ProductTable extends JPanel {
 
         table.setPreferredScrollableViewportSize(new Dimension(700, 260));
         table.setFillsViewportHeight(true);
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+        table.getColumnModel().getColumn(0).setPreferredWidth(0);
 
         return table;
     }
@@ -185,16 +200,18 @@ public class ProductTable extends JPanel {
 
             Object[] rowData = {
                 product.getId(),
+                product.getProductCode(),
                 product.getName(),
                 product.getPrice(),
+                product.getSellPrice(),
+                product.getStock(),
                 categoryName
             };
-
             tableModel.addRow(rowData);
         }
     }
 
-    public void deleteRowItem(int selectedRow) {
+    public void deleteRowItem(Integer selectedRow) {
         int result = JOptionPane.showConfirmDialog(
                 this,
                 "Are you sure you want to delete this item?",
@@ -207,7 +224,6 @@ public class ProductTable extends JPanel {
             try {
                 Integer id = (Integer) table.getValueAt(selectedRow, 0);
                 productController.deleteProduct(id);
-
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 model.removeRow(selectedRow);
                 showSuccess("Item deleted successfully!");
@@ -220,11 +236,14 @@ public class ProductTable extends JPanel {
 
     public void editRowItem(int selectedRow) {
         Integer id = (Integer) table.getValueAt(selectedRow, 0);
-        String defaultName = table.getValueAt(selectedRow, 1) != null ? table.getValueAt(selectedRow, 1).toString() : "";
-        double defaultPrice = table.getValueAt(selectedRow, 2) != null ? Double.parseDouble(table.getValueAt(selectedRow, 2).toString()) : 0.0;
+        String productCode = (String) table.getValueAt(selectedRow, 1);
+        String defaultName = table.getValueAt(selectedRow, 2) != null ? table.getValueAt(selectedRow, 2).toString() : "";
+        Double defaultPrice = table.getValueAt(selectedRow, 3) != null ? Double.parseDouble(table.getValueAt(selectedRow, 3).toString()) : 0.0;
+        Double defaultSellPrice = table.getValueAt(selectedRow, 4) != null ? Double.parseDouble(table.getValueAt(selectedRow, 4).toString()) : 0.0;
+        int defaultStock = (Integer) table.getValueAt(selectedRow, 5);
 
         while (true) {
-            JPanel editPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+            JPanel editPanel = new JPanel(new GridLayout(6, 2, 10, 10));
             Font font = new Font("Arial", Font.BOLD, 16);
             EmptyBorder padding = new EmptyBorder(5, 5, 5, 5);
 
@@ -232,6 +251,11 @@ public class ProductTable extends JPanel {
             idField.setFont(font);
             idField.setBorder(padding);
             idField.setEditable(false);
+
+            JTextField productCodeField = new JTextField(productCode != null ? productCode.toString() : "");
+            productCodeField.setFont(font);
+            productCodeField.setBorder(padding);
+            productCodeField.setEditable(false);
 
             JTextField nameField = new JTextField(defaultName);
             nameField.setFont(font);
@@ -241,15 +265,29 @@ public class ProductTable extends JPanel {
             priceField.setFont(font);
             priceField.setBorder(padding);
 
+            JTextField sellPriceField = new JTextField(Double.toString(defaultSellPrice));
+            sellPriceField.setFont(font);
+            sellPriceField.setBorder(padding);
+
+            /*JSpinner stockSpinner = new JSpinner(new SpinnerNumberModel(defaultStock, 0, Integer.MAX_VALUE, 1));
+            stockSpinner.setFont(font);
+            stockSpinner.setEnabled(false);
+            stockSpinner.setEditor(null);
+            stockSpinner.setBorder(padding);*/
+            
             JComboBox<CategoryEntity> categoryComboBox = createCategoryComboBox(selectedRow);
 
-            editPanel.add(new JLabel("ID:"));
-            editPanel.add(idField);
-            editPanel.add(new JLabel("Name:"));
+            editPanel.add(new JLabel("Product code"));
+            editPanel.add(productCodeField);
+            editPanel.add(new JLabel("Name"));
             editPanel.add(nameField);
-            editPanel.add(new JLabel("Price:"));
+            editPanel.add(new JLabel("Buy price"));
             editPanel.add(priceField);
-            editPanel.add(new JLabel("Category:"));
+            editPanel.add(new JLabel("Sell price"));
+            editPanel.add(sellPriceField);
+            /*  editPanel.add(new JLabel("Stock"));
+            editPanel.add(stockSpinner);*/
+            editPanel.add(new JLabel("Category"));
             editPanel.add(categoryComboBox);
 
             int result = JOptionPane.showConfirmDialog(
@@ -264,6 +302,9 @@ public class ProductTable extends JPanel {
                 try {
                     String newName = nameField.getText().trim();
                     String priceText = priceField.getText().trim();
+                    String sellPriceText = sellPriceField.getText().trim();
+                    Integer stock = (Integer) 0;
+                    CategoryEntity categoryEntity = (CategoryEntity) categoryComboBox.getSelectedItem();
 
                     // Validate name
                     if (newName.isEmpty()) {
@@ -287,14 +328,36 @@ public class ProductTable extends JPanel {
                         continue;
                     }
 
-                    // If all inputs are valid, update the product and exit the loop
-                    CategoryEntity categoryEntity = (CategoryEntity) categoryComboBox.getSelectedItem();
-                    ProductEntity updatedProduct = new ProductEntity(id, newName, newPrice, categoryEntity.getId());
-                    productController.updateProduct(updatedProduct);
+                    // Validate sell price
+                    if (sellPriceText.isEmpty()) {
+                        showWarning("Sell price should not be empty!");
+                        priceField.requestFocus();
+                        continue;
+                    }
 
+                    Double newSellPrice = Double.parseDouble(sellPriceText);
+
+                    if (newSellPrice < 0) {
+                        showWarning("Sell price should not be negative!");
+                        priceField.requestFocus();
+                        continue;
+                    }
+
+                    if (categoryEntity.toString().equals("-- Select category --")) {
+                        showWarning("Please choose category first!");
+                        categoryComboBox.requestFocus();
+                        continue;
+                    }
+
+                    ProductEntity updatedProduct = new ProductEntity(id, newName, newPrice, stock, categoryEntity.getId(), productCode, newSellPrice);
+                    productController.updateProduct(updatedProduct);
+                    
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.setValueAt(newName, selectedRow, 1);
-                    model.setValueAt(newPrice, selectedRow, 2);
+                    model.setValueAt(newName, selectedRow, 2);
+                    model.setValueAt(newPrice, selectedRow, 3);
+                    model.setValueAt(newSellPrice, selectedRow, 4);
+                    model.setValueAt(stock, selectedRow, 5);
+                    model.setValueAt(categoryEntity, selectedRow, 6);
 
                     showSuccess("Item updated successfully!");
                     break;
@@ -314,13 +377,22 @@ public class ProductTable extends JPanel {
 
     private void refreshItems() {
         try {
+            String searchValue = productFilter.getSearchField().getText().trim();
+            CategoryEntity categoryValue = (CategoryEntity) productFilter.getCategoryComboBox().getSelectedItem();
 
-            TreePath selectedPath = LeftPanelContext.getInstance().getTreePath();
-            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
-            CategoryEntity categoryEntity = (CategoryEntity) selectedNode.getUserObject();
+            if (!searchValue.isEmpty()) {
+                searchValue = searchValue;
+            } else {
+                searchValue = null;
+            }
 
-            List<ProductEntity> products = productController.getAllProductsByCategoryId(categoryEntity.getId());
+            if (categoryValue != null && categoryValue.getId() == 0) {
+                categoryValue = null;
+            }
+
+            List<ProductEntity> products = productController.getAllProducts(searchValue, categoryValue);
             loadTableData(products);
+
             showSuccess("All items are successfully refresh");
         } catch (Exception e) {
             showError("All items are failed refresh");
@@ -351,7 +423,7 @@ public class ProductTable extends JPanel {
     }
 
     public void setSelectedItemComboBox(DefaultComboBoxModel<CategoryEntity> categoryModel, Integer selectedRow) {
-        Object category = table.getValueAt(selectedRow, 3);
+        Object category = table.getValueAt(selectedRow, 6);
         CategoryEntity defaultCategory = (CategoryEntity) category;
         if (defaultCategory != null) {
             categoryModel.setSelectedItem(defaultCategory);

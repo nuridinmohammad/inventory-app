@@ -13,17 +13,18 @@ public class ProductDAOImpl implements ProductDAO {
 
     @Override
     public void addProduct(ProductEntity product) throws SQLException {
-        String sql = "INSERT INTO products (name, price, category_id) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO products (name, price, category_id, product_code, sell_price) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, product.getName());
             stmt.setDouble(2, product.getPrice());
             stmt.setInt(3, product.getCategoryId());
+            stmt.setString(4, product.getProductCode());
+            stmt.setDouble(5, product.getSellPrice());
             stmt.executeUpdate();
 
-            // Optionally, retrieve generated keys if needed
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    product.setId(generatedKeys.getInt(1)); // Set the generated ID to the product
+                    product.setId(generatedKeys.getInt(1));
                 }
             }
         }
@@ -40,7 +41,10 @@ public class ProductDAOImpl implements ProductDAO {
                             rs.getInt("id"),
                             rs.getString("name"),
                             rs.getDouble("price"),
-                            rs.getInt("category_id")
+                            rs.getInt("stock"),
+                            rs.getInt("category_id"),
+                            rs.getString("product_code"),
+                            rs.getDouble("sell_price")
                     );
                 }
             }
@@ -58,7 +62,10 @@ public class ProductDAOImpl implements ProductDAO {
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getDouble("price"),
-                        rs.getInt("category_id")
+                        rs.getInt("stock"),
+                        rs.getInt("category_id"),
+                        rs.getString("product_code"),
+                        rs.getDouble("sell_price")
                 ));
             }
         }
@@ -66,40 +73,36 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public List<ProductEntity> getAllProducts(String searchValue, Integer min, Integer max, CategoryEntity category) throws SQLException {
+    public List<ProductEntity> getAllProducts(String searchValue, CategoryEntity category) throws SQLException {
         List<ProductEntity> products = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder("SELECT * FROM products");
 
-        boolean hasCondition = false; 
+        boolean hasCondition = false;
+
         if (searchValue != null && !searchValue.isEmpty()) {
-            sql.append(" WHERE LOWER(name) LIKE ?");
+            sql.append(" WHERE LOWER(name) LIKE ? OR product_code = ?");
             hasCondition = true;
         }
-        if (min != null) {
-            sql.append(hasCondition ? " AND" : " WHERE").append(" price >= ?");
-            hasCondition = true;
-        }
-        if (max != null) {
-            sql.append(hasCondition ? " AND" : " WHERE").append(" price <= ?");
-            hasCondition = true;
-        }
+
         if (category != null && category.getId() != null) {
-            sql.append(hasCondition ? " AND" : " WHERE").append(" category_id = ?");
+            if (hasCondition) {
+                sql.append(" AND");
+            } else {
+                sql.append(" WHERE");
+            }
+            sql.append(" category_id = ?");
         }
 
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
             int paramIndex = 1;
 
             if (searchValue != null && !searchValue.isEmpty()) {
                 stmt.setString(paramIndex++, "%" + searchValue.toLowerCase() + "%");
+                stmt.setString(paramIndex++, searchValue);
             }
-            if (min != null) {
-                stmt.setInt(paramIndex++, min);
-            }
-            if (max != null) {
-                stmt.setInt(paramIndex++, max);
-            }
+
             if (category != null && category.getId() != null) {
                 stmt.setInt(paramIndex++, category.getId());
             }
@@ -110,7 +113,10 @@ public class ProductDAOImpl implements ProductDAO {
                             rs.getInt("id"),
                             rs.getString("name"),
                             rs.getDouble("price"),
-                            rs.getInt("category_id")
+                            rs.getInt("stock"),
+                            rs.getInt("category_id"),
+                            rs.getString("product_code"),
+                            rs.getDouble("sell_price")
                     ));
                 }
             }
@@ -121,12 +127,15 @@ public class ProductDAOImpl implements ProductDAO {
 
     @Override
     public void updateProduct(ProductEntity product) throws SQLException {
-        String sql = "UPDATE products SET name = ?, price = ?, category_id = ? WHERE id = ?";
+        String sql = "UPDATE products SET name = ?, price = ?, category_id = ?, product_code = ?, stock = ?, sell_price = ? WHERE id = ?";
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, product.getName());
             stmt.setDouble(2, product.getPrice());
             stmt.setInt(3, product.getCategoryId());
-            stmt.setInt(4, product.getId());
+            stmt.setString(4, product.getProductCode());
+            stmt.setInt(5, product.getStock());
+            stmt.setDouble(6, product.getSellPrice());
+            stmt.setInt(7, product.getId());
             stmt.executeUpdate();
         }
     }
@@ -152,7 +161,10 @@ public class ProductDAOImpl implements ProductDAO {
                             rs.getInt("id"),
                             rs.getString("name"),
                             rs.getDouble("price"),
-                            rs.getInt("category_id")
+                            rs.getInt("stock"),
+                            rs.getInt("category_id"),
+                            rs.getString("product_code"),
+                            rs.getDouble("sell_price")
                     ));
                 }
             }
@@ -165,6 +177,16 @@ public class ProductDAOImpl implements ProductDAO {
         String sql = "DELETE FROM products WHERE category_id = ?";
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, categoryId);
+            stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public void updateStockProduct(ProductEntity product) throws SQLException {
+        String sql = "UPDATE products SET stock = ? WHERE id = ?";
+        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, product.getStock());
+            stmt.setInt(2, product.getId());
             stmt.executeUpdate();
         }
     }

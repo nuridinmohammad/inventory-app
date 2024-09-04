@@ -2,15 +2,12 @@ package com.multibahana.inventoryapp.context;
 
 import com.multibahana.inventoryapp.views.components.molecules.ProductTable;
 import com.multibahana.inventoryapp.views.components.molecules.ReceiptTable;
-import com.multibahana.inventoryapp.views.components.molecules.ReceiptTable;
-import com.multibahana.inventoryapp.views.components.molecules.StockTable;
 import com.multibahana.inventoryapp.views.components.molecules.VendorTable;
 
 public class TablesContext {
 
     private static TablesContext instance;
     private ReceiptTable currentReciptTables;
-    private StockTable currentStockTable;
     private ProductTable currentProductTables;
     private VendorTable currentVendorTables;
 
@@ -60,15 +57,4 @@ public class TablesContext {
         this.currentVendorTables = tables;
     }
 
-    public StockTable getCurrentStockTables() {
-        return currentStockTable;
-    }
-
-    public void setCurrentStockTables(StockTable currentTables) {
-        this.currentStockTable = currentTables;
-    }
-
-    public void updateStockTables(StockTable tables) {
-        this.currentStockTable = tables;
-    }
 }

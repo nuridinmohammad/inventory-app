@@ -42,7 +42,7 @@ public class CategoryRelationController {
         }
         return null;
     }
-    
+
     public List<CategoryRelationEntity> getAllCategoryRelationsByAncestorId(Integer ancestorId) {
         try {
             return categoryRelationDAO.getAllCategoryRelationsByAncestorId(ancestorId);

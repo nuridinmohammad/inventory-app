@@ -4,15 +4,18 @@ import com.multibahana.inventoryapp.views.components.molecules.Navbar;
 import com.multibahana.inventoryapp.views.components.organisms.Product;
 import com.multibahana.inventoryapp.views.components.organisms.Receipt;
 import com.multibahana.inventoryapp.views.components.organisms.Sales;
-import com.multibahana.inventoryapp.views.components.organisms.Stock;
 import com.multibahana.inventoryapp.views.components.organisms.Vendor;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CenterPanel extends JPanel {
 
@@ -23,21 +26,29 @@ public class CenterPanel extends JPanel {
     private JButton activeButton;
 
     public CenterPanel() {
-        panelCache = new HashMap<>();
+        panelCache = new ConcurrentHashMap<>();
         initUI();
         setupListeners();
     }
 
     private void initUI() {
         setLayout(new BorderLayout());
-        panelCache.put("Sales", new Sales());
-        panelCache.put("Product", new Product());
-        panelCache.put("Receipt", new Receipt());
-        panelCache.put("Vendor", new Vendor());
-        panelCache.put("Stock", new Stock());
+
+        List<String> panels = Arrays.asList("Sales", "Receipt", "Product", "Vendor");
+
+        for (String panelName : panels) {
+            Runnable task = () -> panelCache.put(panelName, getPanel(panelName));
+            Thread thread = new Thread(task);
+            thread.start();
+            try {
+                thread.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CenterPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
 
         navbar = new Navbar();
-        contentPanel = getPanel("Sales");
+        contentPanel = panelCache.get("Receipt");
         centerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, navbar, contentPanel);
         add(centerSplitPane, BorderLayout.CENTER);
     }
@@ -72,9 +83,6 @@ public class CenterPanel extends JPanel {
                     break;
                 case "Vendor":
                     panel = new Vendor();
-                    break;
-                case "Stock":
-                    panel = new Stock();
                     break;
                 default:
                     System.out.println("Unknown option: " + panelName);

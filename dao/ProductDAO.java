@@ -13,13 +13,16 @@ public interface ProductDAO {
 
     List<ProductEntity> getAllProducts() throws SQLException;
 
-    List<ProductEntity> getAllProducts(String searchValue, Integer min, Integer max, CategoryEntity category) throws SQLException;
+    List<ProductEntity> getAllProducts(String searchValue, CategoryEntity category) throws SQLException;
 
+    List<ProductEntity> getAllProductsByCategoryId(Integer id) throws SQLException;
+    
     void updateProduct(ProductEntity product) throws SQLException;
+
+    void updateStockProduct(ProductEntity stock) throws SQLException;
 
     void deleteProduct(Integer id) throws SQLException;
 
     void deleteProductsByCategoryId(Integer id) throws SQLException;
 
-    List<ProductEntity> getAllProductsByCategoryId(Integer id) throws SQLException;
 }

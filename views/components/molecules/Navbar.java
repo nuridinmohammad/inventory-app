@@ -17,7 +17,6 @@ public class Navbar extends JPanel {
     private JButton toProductButton;
     private JButton toReceiptButton;
     private JButton toVendorButton;
-    private JButton toStockButton;
 
     public Navbar() {
         this.buttons = new ArrayList<>();
@@ -28,7 +27,7 @@ public class Navbar extends JPanel {
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
         buttonsPanel.setOpaque(false);
 
-        toSaleButton = createButton("Sales");
+        toSaleButton = createButton("Sales (Comming soon)");
         buttonsPanel.add(toSaleButton);
 
         toProductButton = createButton("Product");
@@ -39,9 +38,6 @@ public class Navbar extends JPanel {
 
         toVendorButton = createButton("Vendor");
         buttonsPanel.add(toVendorButton);
-
-        toStockButton = createButton("Stock");
-        buttonsPanel.add(toStockButton);
 
         add(buttonsPanel, BorderLayout.EAST);
         setBackground(Color.DARK_GRAY);
@@ -60,15 +56,15 @@ public class Navbar extends JPanel {
         return button;
     }
 
-    private void updateButtonColors(JButton activeButton) {
-        for (JButton button : buttons) {
-            if (button == activeButton) {
-                button.setForeground(Color.YELLOW);
-            } else {
-                button.setForeground(Color.WHITE);
-            }
-        }
+    /*private void updateButtonColors(JButton activeButton) {
+    for (JButton button : buttons) {
+    if (button == activeButton) {
+    button.setForeground(Color.YELLOW);
+    } else {
+    button.setForeground(Color.WHITE);
     }
+    }
+    }*/
 
     // Getters for the buttons
     public JButton getToSaleButton() {
@@ -87,9 +83,6 @@ public class Navbar extends JPanel {
         return toVendorButton;
     }
 
-    public JButton getToStockButton() {
-        return toStockButton;
-    }
 
     public List<JButton> getButtons() {
         return buttons;

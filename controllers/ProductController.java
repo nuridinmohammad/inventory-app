@@ -41,9 +41,9 @@ public class ProductController {
         return null;
     }
 
-    public List<ProductEntity> getAllProducts(String searchValue, Integer min, Integer max, CategoryEntity category) {
+    public List<ProductEntity> getAllProducts(String searchValue, CategoryEntity category) {
         try {
-            return productDAO.getAllProducts(searchValue, min, max, category);
+            return productDAO.getAllProducts(searchValue, category);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -62,6 +62,14 @@ public class ProductController {
     public void updateProduct(ProductEntity product) {
         try {
             productDAO.updateProduct(product);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateStockProduct(ProductEntity product) {
+        try {
+            productDAO.updateStockProduct(product);
         } catch (SQLException e) {
             e.printStackTrace();
         }

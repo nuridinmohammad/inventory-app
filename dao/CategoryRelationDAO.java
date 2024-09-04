@@ -17,4 +17,5 @@ public interface CategoryRelationDAO {
     void updateCategoryRelation(CategoryRelationEntity relation) throws SQLException;
 
     void deleteCategoryRelation(Integer ancestorId, Integer descendantId) throws SQLException;
+
 }

@@ -1,13 +1,16 @@
 package com.multibahana.inventoryapp.views.components.molecules;
 
+import com.multibahana.inventoryapp.controller.EvidenceController;
+import com.multibahana.inventoryapp.controller.ProductInController;
 import com.multibahana.inventoryapp.controllers.ProductController;
-import com.multibahana.inventoryapp.controllers.StockController;
 import com.multibahana.inventoryapp.controllers.VendorController;
+import com.multibahana.inventoryapp.dao.EvidenceDAOImpl;
+import com.multibahana.inventoryapp.dao.ProductInDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.ProductDAOImpl;
-import com.multibahana.inventoryapp.daoimplements.StockDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.VendorDAOImpl;
+import com.multibahana.inventoryapp.entities.EvidenceEntity;
 import com.multibahana.inventoryapp.entities.ProductEntity;
-import com.multibahana.inventoryapp.entities.StockEntity;
+import com.multibahana.inventoryapp.entities.ProductInEntity;
 import com.multibahana.inventoryapp.entities.VendorEntity;
 import com.multibahana.inventoryapp.views.components.atoms.PopRowMenu;
 import com.toedter.calendar.JDateChooser;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.border.EmptyBorder;
@@ -36,8 +40,8 @@ public class ReceiptTable extends JPanel {
 
     private PopRowMenu popupMenu;
     private String[] columnNames;
-    private StockController stockController;
     private ReceiptFilter receiptFilter;
+    private ProductInController productInController;
 
     public ReceiptTable() {
         setLayout(new BorderLayout());
@@ -46,7 +50,7 @@ public class ReceiptTable extends JPanel {
 
     private void initUI() {
         tableModel = createTableModel();
-        this.stockController = new StockController(new StockDAOImpl());
+        this.productInController = new ProductInController(new ProductInDAOImpl());
         table = createTable(tableModel);
         receiptFilter = new ReceiptFilter();
 
@@ -133,14 +137,14 @@ public class ReceiptTable extends JPanel {
         receiptFilter.getSearchButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String noEvidenceField = receiptFilter.getSearchField().getText();
+                String searchValue = receiptFilter.getSearchField().getText();
                 Date dateValue = receiptFilter.getDateChooser().getDate();
                 VendorEntity vendorValue = (VendorEntity) receiptFilter.getVendorComboBox().getSelectedItem();
 
-                if (!noEvidenceField.isEmpty()) {
-                    noEvidenceField = noEvidenceField;
+                if (!searchValue.isEmpty()) {
+                    searchValue = searchValue;
                 } else {
-                    noEvidenceField = null;
+                    searchValue = null;
                 }
 
                 if (vendorValue != null && vendorValue.getId() == 0) {
@@ -151,8 +155,8 @@ public class ReceiptTable extends JPanel {
                     dateValue = dateValue;
                 }
 
-                List<StockEntity> stocks = stockController.getAllStocks(noEvidenceField, dateValue, vendorValue);
-                loadTableData(stocks);
+                List<ProductInEntity> productsIn = productInController.getAllProductIn(searchValue, dateValue, vendorValue);
+                loadTableData(productsIn);
             }
         });
 
@@ -161,11 +165,11 @@ public class ReceiptTable extends JPanel {
     }
 
     private void loadInitialData() {
-        List<StockEntity> stocks = stockController.getAllStocks();
-        loadTableData(stocks);
+        List<ProductInEntity> productsIn = productInController.getAllProductIn();
+        loadTableData(productsIn);
     }
 
-    public void loadTableData(List<StockEntity> stocks) {
+    public void loadTableData(List<ProductInEntity> productsIn) {
         ProductController productController = new ProductController(new ProductDAOImpl());
         List<ProductEntity> productEntities = productController.getAllProducts();
         Map<Integer, ProductEntity> productMap = productEntities.stream()
@@ -176,19 +180,26 @@ public class ReceiptTable extends JPanel {
         Map<Integer, VendorEntity> vendorMap = vendorEntities.stream()
                 .collect(Collectors.toMap(VendorEntity::getId, vendor -> vendor));
 
+        EvidenceController evidenceController = new EvidenceController(new EvidenceDAOImpl());
+        List<EvidenceEntity> evidenceEntities = evidenceController.getAllEvidences();
+        Map<Integer, EvidenceEntity> evidenceMap = evidenceEntities.stream()
+                .collect(Collectors.toMap(EvidenceEntity::getId, evidence -> evidence));
+
         tableModel.setRowCount(0);
 
-        for (StockEntity stock : stocks) {
-            ProductEntity product = productMap.get(stock.getProductId());
-            VendorEntity vendor = vendorMap.get(stock.getVendorId());
+        for (ProductInEntity productIn : productsIn) {
+            ProductEntity product = productMap.get(productIn.getProductId());
+            VendorEntity vendor = vendorMap.get(productIn.getVendorId());
+            EvidenceEntity evidence = evidenceMap.get(productIn.getEvidenceId());
 
             Object[] rowData = {
-                stock.getId(),
-                stock.getDateReceipt(),
-                stock.getNoEvidence(),
+                productIn.getId(),
+                productIn.getDate(),
+                evidence != null ? evidence : "Unknown Evidence",
                 product != null ? product : "Unknown Product",
-                //                stock.getAmount(),
-                vendor != null ? vendor : "Unknown Vendor"};
+                productIn.getQuantity(),
+                vendor != null ? vendor : "Unknown Vendor"
+            };
 
             tableModel.addRow(rowData);
         }
@@ -205,12 +216,16 @@ public class ReceiptTable extends JPanel {
 
         table.setPreferredScrollableViewportSize(new Dimension(700, 260));
         table.setFillsViewportHeight(true);
+        table.getColumnModel().getColumn(0).setMinWidth(0);
+        table.getColumnModel().getColumn(0).setMaxWidth(0);
+        table.getColumnModel().getColumn(0).setWidth(0);
+        table.getColumnModel().getColumn(0).setPreferredWidth(0);
 
         return table;
     }
 
     private DefaultTableModel createTableModel() {
-        String[] columnNames = {"ID", "Date receipt", "No evidence", "Product name", "Vendor"};
+        String[] columnNames = {"ID", "Date receipt", "No evidence", "Product name", "Qty", "Vendor"};
         return new DefaultTableModel(columnNames, 0);
     }
 
@@ -219,8 +234,8 @@ public class ReceiptTable extends JPanel {
         Date date = (Date) table.getValueAt(selectedRow, 1);
         String noEvidence = (String) table.getValueAt(selectedRow, 2);
         ProductEntity product = (ProductEntity) table.getValueAt(selectedRow, 3);
-        StockEntity stock = stockController.getStockById(id);
-        Integer amount = (Integer) stock.getAmount();
+        ProductInEntity productIn = productInController.getProductInById(id);
+        Integer amount = (Integer) productIn.getQuantity();
         VendorEntity vendor = (VendorEntity) table.getValueAt(selectedRow, 4);
 
         var defaultAmount = amount != null ? amount : 0;
@@ -304,8 +319,8 @@ public class ReceiptTable extends JPanel {
                         continue;
                     }
 
-                    StockController stockController = new StockController(new StockDAOImpl());
-                    stockController.updateStock(new StockEntity(id, newNoEvidence, newDate, newAmount, product.getId(), vendor.getId()));
+                    ProductInController productInController = new ProductInController(new ProductInDAOImpl());
+                    productInController.updateProductIn(new ProductInEntity(id, product.getId(), vendor.getId(), 1, date, 1));
 
                     JOptionPane.showMessageDialog(
                             this,
@@ -348,7 +363,7 @@ public class ReceiptTable extends JPanel {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 Integer id = (Integer) table.getValueAt(selectedRow, 0);
-                stockController.deleteStock(id);
+                productInController.deleteProductIn(id);
 
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 model.removeRow(selectedRow);
@@ -374,8 +389,8 @@ public class ReceiptTable extends JPanel {
     private void refreshItems() {
         try {
 
-            List<StockEntity> stocks = stockController.getAllStocks();
-            loadTableData(stocks);
+            List<ProductInEntity> productsIn = productInController.getAllProductIn();
+            loadTableData(productsIn);
             JOptionPane.showMessageDialog(
                     this,
                     "All items are successfully refresh",

@@ -1,13 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.multibahana.inventoryapp.utils;
 
-/**
- *
- * @author mohammadnuridin
- */
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class StringUtil {
 
     public static String truncateText(String text, int maxWords) {
@@ -21,6 +16,28 @@ public class StringUtil {
         }
         truncated.append("...");
         return truncated.toString().trim();
+    }
+
+    public static String generateProductCode(String product, int number) {
+        String productCode = Stream.of(product.split(" "))
+                .map(word -> word.substring(0, 1).toUpperCase())
+                .collect(Collectors.joining());
+
+        productCode += number;
+
+        return productCode;
+    }
+
+    public static boolean isDouble(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
 }

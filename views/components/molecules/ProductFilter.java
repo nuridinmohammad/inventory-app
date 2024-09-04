@@ -17,8 +17,8 @@ import javax.swing.border.EmptyBorder;
 public class ProductFilter extends JPanel {
 
     private JTextField searchField;
-    private JTextField minField;
-    private JTextField maxField;
+    /*private JTextField minField;
+    private JTextField maxField;*/
     private JComboBox<CategoryEntity> categoryComboBox;
     private JButton searchButton;
     private CategoryController categoryController;
@@ -33,13 +33,13 @@ public class ProductFilter extends JPanel {
         searchField = new JTextField();
         searchField.setFont(font);
 
-        JLabel minLabel = new JLabel("Min ");
+        /*JLabel minLabel = new JLabel("Min ");
         minField = new JTextField();
         minField.setFont(font);
-
+        
         JLabel maxLabel = new JLabel("Max ");
         maxField = new JTextField();
-        maxField.setFont(font);
+        maxField.setFont(font);*/
 
         CategoryController categoryController = new CategoryController(new CategoryDAOImpl());
         Map<Integer, CategoryEntity> categories = categoryController.getAllCategories();
@@ -56,12 +56,12 @@ public class ProductFilter extends JPanel {
         JPanel searchPanel = createPanel();
         searchPanel.add(searchField);
 
-        JPanel minPanel = createPanel();
-        minPanel.add(minField);
+        /*JPanel minPanel = createPanel();
+        minPanel.add(minField);*/
 
-        JPanel maxPanel = createPanel();
-        maxPanel.add(maxField);
-
+        /*JPanel maxPanel = createPanel();
+        maxPanel.add(maxField);*/
+        
         JPanel buttonPanel =createPanel();
         buttonPanel.add(searchButton);
 
@@ -70,10 +70,10 @@ public class ProductFilter extends JPanel {
 
         add(searchLabel);
         add(searchPanel);
-        add(minLabel);
-        add(minPanel);
-        add(maxLabel);
-        add(maxPanel);
+//        add(minLabel);
+//        add(minPanel);
+//        add(maxLabel);
+//        add(maxPanel);
         add(categoryPanel);
         add(buttonPanel);
 
@@ -87,14 +87,14 @@ public class ProductFilter extends JPanel {
         return searchField;
     }
 
-    public JTextField getMinField() {
-        return minField;
-    }
+    /*public JTextField getMinField() {
+    return minField;
+    }*/
 
-    public JTextField getMaxField() {
-        return maxField;
-    }
-
+    /*public JTextField getMaxField() {
+    return maxField;
+    }*/
+    
     public JComboBox<CategoryEntity> getCategoryComboBox() {
         return categoryComboBox;
     }

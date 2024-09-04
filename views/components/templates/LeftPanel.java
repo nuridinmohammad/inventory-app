@@ -16,6 +16,7 @@ import com.multibahana.inventoryapp.entities.ProductEntity;
 
 import com.multibahana.inventoryapp.views.components.atoms.CustomTreeCellRenderer;
 import com.multibahana.inventoryapp.views.components.atoms.PopCategoryMenu;
+import com.multibahana.inventoryapp.views.components.molecules.ProductForm;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
