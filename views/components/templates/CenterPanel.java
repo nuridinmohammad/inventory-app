@@ -48,7 +48,7 @@ public class CenterPanel extends JPanel {
         }
 
         navbar = new Navbar();
-        contentPanel = panelCache.get("Receipt");
+        contentPanel = panelCache.get("Product");
         centerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, navbar, contentPanel);
         add(centerSplitPane, BorderLayout.CENTER);
     }

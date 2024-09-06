@@ -39,7 +39,6 @@ public class ReceiptTable extends JPanel {
     private DefaultTableModel tableModel;
 
     private PopRowMenu popupMenu;
-    private String[] columnNames;
     private ReceiptFilter receiptFilter;
     private ProductInController productInController;
 
@@ -70,6 +69,8 @@ public class ReceiptTable extends JPanel {
         add(tableSplitPane, BorderLayout.CENTER);
 
         popupMenu = new PopRowMenu();
+        JMenuItem deleteRow = popupMenu.getDeleteRow();
+        popupMenu.remove(deleteRow);
 
         table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -108,19 +109,20 @@ public class ReceiptTable extends JPanel {
             }
         });
 
+        /*
         popupMenu.getDeleteRow().addActionListener(e -> {
-            int selectedRow = table.getSelectedRow();
-            if (selectedRow != -1) {
-                deleteRowItem(selectedRow);
-            } else {
-                JOptionPane.showMessageDialog(ReceiptTable.this,
-                        "Please select a row to delete",
-                        "Warning",
-                        JOptionPane.WARNING_MESSAGE
-                );
-            }
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow != -1) {
+        deleteRowItem(selectedRow);
+        } else {
+        JOptionPane.showMessageDialog(ReceiptTable.this,
+        "Please select a row to delete",
+        "Warning",
+        JOptionPane.WARNING_MESSAGE
+        );
+        }
         });
-
+         */
         popupMenu.getRefresh().addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow != -1) {
@@ -230,32 +232,33 @@ public class ReceiptTable extends JPanel {
     }
 
     public void editRowItem(int selectedRow) {
-        Integer id = (Integer) table.getValueAt(selectedRow, 0);
+        Integer productInId = (Integer) table.getValueAt(selectedRow, 0);
         Date date = (Date) table.getValueAt(selectedRow, 1);
-        String noEvidence = (String) table.getValueAt(selectedRow, 2);
+        EvidenceEntity noEvidence = (EvidenceEntity) table.getValueAt(selectedRow, 2);
         ProductEntity product = (ProductEntity) table.getValueAt(selectedRow, 3);
-        ProductInEntity productIn = productInController.getProductInById(id);
-        Integer amount = (Integer) productIn.getQuantity();
-        VendorEntity vendor = (VendorEntity) table.getValueAt(selectedRow, 4);
+        ProductInEntity productIn = productInController.getProductInById(productInId);
+        Integer qty = (Integer) productIn.getQuantity();
+        VendorEntity vendor = (VendorEntity) table.getValueAt(selectedRow, 5);
 
-        var defaultAmount = amount != null ? amount : 0;
+        var defaultQty = qty != null ? qty : 0;
 
         boolean validInput = false;
 
         while (!validInput) {
-            JPanel editPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+            JPanel editPanel = new JPanel(new GridLayout(2, 2, 10, 10));
             Font font = new Font("Arial", Font.BOLD, 16);
             EmptyBorder padding = new EmptyBorder(5, 5, 5, 5);
 
-            JTextField idField = new JTextField(id != null ? id.toString() : "");
-            idField.setEditable(false);
-            idField.setFont(font);
-            idField.setBorder(padding);
+            JTextField productInIdField = new JTextField(productInId != null ? productInId.toString() : "");
+            productInIdField.setEditable(false);
+            productInIdField.setFont(font);
+            productInIdField.setBorder(padding);
 
+            /*
             JDateChooser dateChooser = new JDateChooser(date);
             dateChooser.setDateFormatString("yyyy-MM-dd");
-
-            JTextField noEvidenceField = new JTextField(noEvidence);
+            
+            JTextField noEvidenceField = new JTextField(noEvidence.getCode());
             noEvidenceField.setFont(font);
             noEvidenceField.setBorder(padding);
 
@@ -263,29 +266,33 @@ public class ReceiptTable extends JPanel {
             nameField.setFont(font);
             nameField.setBorder(padding);
             nameField.setEditable(false);
+             */
+            SpinnerNumberModel spinnerModel = new SpinnerNumberModel(defaultQty, 0, Integer.MAX_VALUE, 1);
+            spinnerModel.getNextValue();
+            JSpinner qtySpinner = new JSpinner(spinnerModel);
+            ((JSpinner.DefaultEditor) qtySpinner.getEditor()).getTextField().setFont(font);
 
-            SpinnerNumberModel spinnerModel = new SpinnerNumberModel(defaultAmount, 0, Integer.MAX_VALUE, 1);
-            JSpinner amountSpinner = new JSpinner(spinnerModel);
-            ((JSpinner.DefaultEditor) amountSpinner.getEditor()).getTextField().setFont(font);
-
-            JTextField vendorField = new JTextField(vendor.getName());
+            /*JTextField vendorField = new JTextField(vendor.getName());
             vendorField.setFont(font);
             vendorField.setBorder(padding);
             vendorField.setEditable(false);
-
+             */
             editPanel.add(new JLabel("ID"));
-            editPanel.add(idField);
-            editPanel.add(new JLabel("Date"));
+            editPanel.add(productInIdField);
+
+            /* editPanel.add(new JLabel("Date"));
             editPanel.add(dateChooser);
             editPanel.add(new JLabel("No evidence"));
             editPanel.add(noEvidenceField);
             editPanel.add(new JLabel("Name"));
             editPanel.add(nameField);
-            editPanel.add(new JLabel("Amount"));
-            editPanel.add(amountSpinner);
-            editPanel.add(new JLabel("Vendor"));
-            editPanel.add(vendorField);
+             */
+            editPanel.add(new JLabel("Qty "));
+            editPanel.add(qtySpinner);
 
+            /* editPanel.add(new JLabel("Vendor"));
+            editPanel.add(vendorField);
+             */
             int result = JOptionPane.showConfirmDialog(
                     this,
                     editPanel,
@@ -296,31 +303,46 @@ public class ReceiptTable extends JPanel {
 
             if (result == JOptionPane.OK_OPTION) {
                 try {
-                    Date newDate = dateChooser.getDate();
+                    /* Date newDate = dateChooser.getDate();
                     String newNoEvidence = noEvidenceField.getText();
-                    Integer newAmount = (Integer) amountSpinner.getValue();
+                     */
+                    Integer newQty = (Integer) qtySpinner.getValue();
 
+                    /* 
                     if (newDate.equals(null)) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Date should not be empty!",
-                                "Warning",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        continue;
+                    JOptionPane.showMessageDialog(
+                    this,
+                    "Date should not be empty!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                    continue;
                     }
                     if (newNoEvidence.isEmpty()) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "No evidence should not be empty!",
-                                "Warning",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        continue;
+                    JOptionPane.showMessageDialog(
+                    this,
+                    "No evidence should not be empty!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE
+                    );
+                    continue;
                     }
-
+                     
+                     */
                     ProductInController productInController = new ProductInController(new ProductInDAOImpl());
-                    productInController.updateProductIn(new ProductInEntity(id, product.getId(), vendor.getId(), 1, date, 1));
+                    ProductController productController = new ProductController(new ProductDAOImpl());
+
+                    ProductInEntity productInEntity = new ProductInEntity();
+                    productInEntity.setId(productInId);
+                    productInEntity.setQuantity(newQty);
+                    productInController.updateQtyProductIn(productInEntity);
+
+                    Integer totalQty = productInController.getTotalQtyProductIn(product.getId());
+
+                    ProductEntity productEntity = new ProductEntity();
+                    productEntity.setId(product.getId());
+                    productEntity.setStock(totalQty);
+                    productController.updateStockProduct(productEntity);
 
                     JOptionPane.showMessageDialog(
                             this,
@@ -351,52 +373,46 @@ public class ReceiptTable extends JPanel {
         }
     }
 
-    public void deleteRowItem(int selectedRow) {
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete this item?",
-                "Delete Item",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                Integer id = (Integer) table.getValueAt(selectedRow, 0);
-                productInController.deleteProductIn(id);
-
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.removeRow(selectedRow);
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Item deleted successfully!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Error deleting item: " + e.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-            }
-        }
+    /* public void deleteRowItem(int selectedRow) {
+    int result = JOptionPane.showConfirmDialog(
+    this,
+    "Are you sure you want to delete this item?",
+    "Delete Item",
+    JOptionPane.OK_CANCEL_OPTION,
+    JOptionPane.QUESTION_MESSAGE
+    );
+    
+    if (result == JOptionPane.OK_OPTION) {
+    try {
+    Integer id = (Integer) table.getValueAt(selectedRow, 0);
+    productInController.deleteProductIn(id);
+    
+    DefaultTableModel model = (DefaultTableModel) table.getModel();
+    model.removeRow(selectedRow);
+    
+    JOptionPane.showMessageDialog(
+    this,
+    "Item deleted successfully!",
+    "Success",
+    JOptionPane.INFORMATION_MESSAGE
+    );
+    } catch (Exception e) {
+    e.printStackTrace();
+    JOptionPane.showMessageDialog(
+    this,
+    "Error deleting item: " + e.getMessage(),
+    "Error",
+    JOptionPane.ERROR_MESSAGE
+    );
     }
-
+    }
+    }*/
     private void refreshItems() {
         try {
 
             List<ProductInEntity> productsIn = productInController.getAllProductIn();
             loadTableData(productsIn);
-            JOptionPane.showMessageDialog(
-                    this,
-                    "All items are successfully refresh",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
                     this,

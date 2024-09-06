@@ -41,8 +41,8 @@ public class ProductInController {
             return null;
         }
     }
-   
-    public List<ProductInEntity> getAllProductIn(String searchValue, Date date, VendorEntity vendor)  {
+
+    public List<ProductInEntity> getAllProductIn(String searchValue, Date date, VendorEntity vendor) {
         try {
             return productInDAO.getAllProductIn(searchValue, date, vendor);
         } catch (SQLException e) {
@@ -56,6 +56,23 @@ public class ProductInController {
             productInDAO.updateProductIn(productIn);
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void updateQtyProductIn(ProductInEntity productIn) {
+        try {
+            productInDAO.updateQtyProductIn(productIn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Integer getTotalQtyProductIn(Integer id) {
+        try {
+            return productInDAO.getTotalQtyProductIn(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;    
         }
     }
 

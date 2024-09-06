@@ -13,11 +13,16 @@ public interface ProductInDAO {
 
     ProductInEntity getProductInById(Integer id) throws SQLException;
 
+
     List<ProductInEntity> getAllProductIn() throws SQLException;
-    
+
     List<ProductInEntity> getAllProductIn(String searchValue, Date date, VendorEntity vendor) throws SQLException;
 
     void updateProductIn(ProductInEntity productIn) throws SQLException;
 
+    void updateQtyProductIn(ProductInEntity productIn) throws SQLException;
+
+    Integer getTotalQtyProductIn(Integer id) throws SQLException;
+    
     void deleteProductIn(Integer id) throws SQLException;
 }

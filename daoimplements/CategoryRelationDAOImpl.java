@@ -15,11 +15,46 @@ public class CategoryRelationDAOImpl implements CategoryRelationDAO {
     @Override
     public void addCategoryRelation(CategoryRelationEntity relation) throws SQLException {
         String sql = "INSERT INTO category_relations (ancestor_id, descendant_id, name) VALUES (?, ?, ?)";
-        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, relation.getAncestorId());
             pstmt.setInt(2, relation.getDescendantId());
             pstmt.setString(3, relation.getName());
             pstmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -75,22 +110,119 @@ public class CategoryRelationDAOImpl implements CategoryRelationDAO {
 
     @Override
     public void updateCategoryRelation(CategoryRelationEntity relation) throws SQLException {
-        String sql = "UPDATE category_relations SET name = ?, ancestor_id = ? WHERE descendant_id = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, relation.getName());
-            pstmt.setInt(2, relation.getAncestorId());
-            pstmt.setInt(3, relation.getDescendantId());
-            pstmt.executeUpdate();
+        String selectSql = "SELECT * FROM category_relations WHERE descendant_id = ? FOR UPDATE";
+        String updateSql = "UPDATE category_relations SET name = ?, ancestor_id = ? WHERE descendant_id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement updateStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, relation.getDescendantId());
+            selectStmt.executeQuery();
+
+            updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setString(1, relation.getName());
+            updateStmt.setInt(2, relation.getAncestorId());
+            updateStmt.setInt(3, relation.getDescendantId());
+            updateStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (updateStmt != null) {
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public void deleteCategoryRelation(Integer ancestorId, Integer descendantId) throws SQLException {
-        String sql = "DELETE FROM category_relations WHERE ancestor_id = ? AND descendant_id = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, ancestorId);
-            pstmt.setInt(2, descendantId);
-            pstmt.executeUpdate();
+        String selectSql = "SELECT * FROM category_relations WHERE ancestor_id = ? AND descendant_id = ? FOR UPDATE";
+        String deleteSql = "DELETE FROM category_relations WHERE ancestor_id = ? AND descendant_id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement deleteStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, ancestorId);
+            selectStmt.setInt(2, descendantId);
+            selectStmt.executeQuery();
+
+            deleteStmt = conn.prepareStatement(deleteSql);
+            deleteStmt.setInt(1, ancestorId);
+            deleteStmt.setInt(2, descendantId);
+            deleteStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteStmt != null) {
+                try {
+                    deleteStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

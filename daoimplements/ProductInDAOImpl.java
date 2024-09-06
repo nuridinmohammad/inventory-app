@@ -17,13 +17,49 @@ public class ProductInDAOImpl implements ProductInDAO {
     @Override
     public void addProductIn(ProductInEntity productIn) throws SQLException {
         String sql = "INSERT INTO products_in (product_id, vendor_id, evidence_id, date, quantity) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = Database.getConnection();
+
+            conn.setAutoCommit(false);
+
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, productIn.getProductId());
             stmt.setInt(2, productIn.getVendorId());
             stmt.setInt(3, productIn.getEvidenceId());
             stmt.setDate(4, new java.sql.Date(productIn.getDate().getTime()));
             stmt.setInt(5, productIn.getQuantity());
             stmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -121,24 +157,202 @@ public class ProductInDAOImpl implements ProductInDAO {
 
     @Override
     public void updateProductIn(ProductInEntity productIn) throws SQLException {
-        String sql = "UPDATE products_in SET product_id = ?, vendor_id = ?, evidence_id = ?, date = ?, quantity = ? WHERE id = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, productIn.getProductId());
-            stmt.setInt(2, productIn.getVendorId());
-            stmt.setInt(3, productIn.getEvidenceId());
-            stmt.setDate(4, new java.sql.Date(productIn.getDate().getTime()));
-            stmt.setInt(5, productIn.getQuantity());
-            stmt.setInt(6, productIn.getId());
-            stmt.executeUpdate();
+        String selectSql = "SELECT id FROM products_in WHERE id = ? FOR UPDATE";
+        String updateSql = "UPDATE products_in SET product_id = ?, vendor_id = ?, evidence_id = ?, date = ?, quantity = ? WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement updateStmt = null;
+
+        try {
+            conn = Database.getConnection();
+
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, productIn.getId());
+            selectStmt.executeQuery();
+
+            updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setInt(1, productIn.getProductId());
+            updateStmt.setInt(2, productIn.getVendorId());
+            updateStmt.setInt(3, productIn.getEvidenceId());
+            updateStmt.setDate(4, new java.sql.Date(productIn.getDate().getTime()));
+            updateStmt.setInt(5, productIn.getQuantity());
+            updateStmt.setInt(6, productIn.getId());
+            updateStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (updateStmt != null) {
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public void deleteProductIn(Integer id) throws SQLException {
-        String sql = "DELETE FROM products_in WHERE id = ?";
+        String selectSql = "SELECT id FROM products_in WHERE id = ? FOR UPDATE";
+        String deleteSql = "DELETE FROM products_in WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement deleteStmt = null;
+
+        try {
+            conn = Database.getConnection();
+
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, id);
+            selectStmt.executeQuery();
+
+            deleteStmt = conn.prepareStatement(deleteSql);
+            deleteStmt.setInt(1, id);
+            deleteStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteStmt != null) {
+                try {
+                    deleteStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void updateQtyProductIn(ProductInEntity productIn) throws SQLException {
+        String selectSql = "SELECT id FROM products_in WHERE id = ? FOR UPDATE";
+        String updateSql = "UPDATE products_in SET quantity = ? WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement updateStmt = null;
+
+        try {
+            conn = Database.getConnection();
+
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, productIn.getId());
+            selectStmt.executeQuery();
+
+            updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setInt(1, productIn.getQuantity());
+            updateStmt.setInt(2, productIn.getId());
+            updateStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (updateStmt != null) {
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public Integer getTotalQtyProductIn(Integer id) throws SQLException {
+        String sql = "SELECT SUM(pi.quantity) AS total_qty "
+                + "FROM products_in pi "
+                + "JOIN products p ON pi.product_id = p.id "
+                + "WHERE pi.product_id = ? "
+                + "GROUP BY pi.product_id";
+
         try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            stmt.executeUpdate();
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_qty");
+                } else {
+                    return 0;
+                }
+            }
         }
     }
 }

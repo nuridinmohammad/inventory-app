@@ -8,6 +8,7 @@ import com.multibahana.inventoryapp.daoimplements.ProductDAOImpl;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
 import com.multibahana.inventoryapp.entities.ProductEntity;
 import com.multibahana.inventoryapp.utils.StringUtil;
+import com.multibahana.inventoryapp.utils.CurrencyDocumentFilter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -16,6 +17,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import javax.swing.text.AbstractDocument;
 
 public class ProductForm extends JPanel {
 
@@ -43,28 +45,33 @@ public class ProductForm extends JPanel {
 
         containerPanel = new JPanel(new GridLayout(3, 2, 6, 6));
 
-        // Initialize fields and components
         name = createTextField();
         productCode = createTextField();
+
         price = createTextField();
+        AbstractDocument priceDoc = (AbstractDocument) price.getDocument();
+        priceDoc.setDocumentFilter(new CurrencyDocumentFilter());
+
         sellPrice = createTextField();
+        AbstractDocument sellPriceDoc = (AbstractDocument) sellPrice.getDocument();
+        sellPriceDoc.setDocumentFilter(new CurrencyDocumentFilter());
+
         category = createComboBox();
         cancelProductButton = createButton("Cancel", true);
         addProductButton = createButton("+ Add", false);
 
         containerPanel.add(createLabeledPanel("Name ", name));
-        containerPanel.add(createLabeledPanel("Buy price ", price));
+        containerPanel.add(createLabeledPanel("Buy price (Rp. )", price));
         containerPanel.add(createLabeledPanel("Product code ", productCode));
-        containerPanel.add(createLabeledPanel("Sell price ", sellPrice));
+        containerPanel.add(createLabeledPanel("Sell price (Rp. )", sellPrice));
         containerPanel.add(createLabeledPanel("Category", category));
         containerPanel.add(createButtonPanel("Actions ", addProductButton, cancelProductButton));
 
-        // Add action listeners
         addProductButton.addActionListener(e -> onAddProduct());
         cancelProductButton.addActionListener(e -> clearFields());
-        addDocumentListeners();
 
         add(containerPanel, BorderLayout.CENTER);
+        addDocumentListeners();
     }
 
     public JPanel createChoosePanel(String longText) {
@@ -125,6 +132,7 @@ public class ProductForm extends JPanel {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 updateButtonState();
+
             }
 
             @Override
@@ -135,8 +143,11 @@ public class ProductForm extends JPanel {
             @Override
             public void changedUpdate(DocumentEvent e) {
                 updateButtonState();
+
             }
+
         };
+
         name.getDocument().addDocumentListener(documentListener);
         productCode.getDocument().addDocumentListener(documentListener);
         price.getDocument().addDocumentListener(documentListener);
@@ -149,8 +160,8 @@ public class ProductForm extends JPanel {
     private void updateButtonState() {
         CategoryEntity categoryObj = (CategoryEntity) categoryModel.getSelectedItem();
 
-        boolean allFieldsFilled = !sellPrice.getText().trim().isEmpty()
-                && !name.getText().trim().isEmpty()
+        boolean allFieldsFilled = !name.getText().trim().isEmpty()
+                && !sellPrice.getText().trim().isEmpty()
                 && !price.getText().trim().isEmpty()
                 && !productCode.getText().trim().isEmpty()
                 && !categoryObj.getName().equals("-- Select category --");
@@ -172,8 +183,8 @@ public class ProductForm extends JPanel {
     }
 
     private void onAddProduct() {
-        String priceText = price.getText();
-        String sellPriceText = sellPrice.getText();
+        String priceText = price.getText().replaceAll("[^\\d]", "");
+        String sellPriceText = sellPrice.getText().replaceAll("[^\\d]", "");
 
         if (!StringUtil.isDouble(priceText)) {
             showWarning("Harga tidak valid. Harap masukkan angka yang benar.");
@@ -185,13 +196,14 @@ public class ProductForm extends JPanel {
             return;
         }
 
-        double priceValue = Double.parseDouble(priceText);
-        double sellPriceValue = Double.parseDouble(sellPriceText);
-
+        Double priceValue = Double.parseDouble(priceText);
+        Double sellPriceValue = Double.parseDouble(sellPriceText);
         CategoryEntity categoryEntity = (CategoryEntity) category.getSelectedItem();
 
         productController = new ProductController(new ProductDAOImpl());
         productController.addProduct(new ProductEntity(name.getText(), priceValue, 0, categoryEntity.getId(), productCode.getText(), sellPriceValue));
+        System.out.println("priceValue : " + priceValue);
+        System.out.println("sellPriceValue : " + sellPriceValue);
 
         JOptionPane.showMessageDialog(this, "Successfully added product: " + name.getText(), "Success", JOptionPane.INFORMATION_MESSAGE);
         clearFields();

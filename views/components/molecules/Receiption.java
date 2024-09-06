@@ -46,7 +46,7 @@ public class Receiption extends JPanel {
         containerPanel.add(receiptSplitPane, BorderLayout.CENTER);
 
         JPanel container = new JPanel(new BorderLayout());
-        JButton addReceiption = new JButton("Add receiption [+]");
+        JButton addReceiption = new JButton("Add receiption [ + ]");
         configureButton(addReceiption);
         container.add(addReceiption, BorderLayout.EAST);
         addReceiption.addActionListener(e -> addReceiption());
@@ -66,56 +66,61 @@ public class Receiption extends JPanel {
         int result = JOptionPane.showConfirmDialog(
                 null,
                 containerPanel,
-                "Add receiption",
+                "Add Receiption",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
         );
 
         if (result == JOptionPane.OK_OPTION) {
+            Integer rowCount = receiptionProductsTable.getTableModel().getRowCount();
             VendorEntity vendor = receiptHeader.getSelectedVendor();
             EvidenceController evidenceController = new EvidenceController(new EvidenceDAOImpl());
             String evidenceText = receiptHeader.getNoEvidenceField().getText();
-            Integer evidenceId = evidenceController.addEvidence(new EvidenceEntity(evidenceText));
-            JDateChooser dateChooserHeader = receiptHeader.getDateChooser();
+            if (!evidenceText.isEmpty() && evidenceText != null && rowCount > 0) {
+                evidenceText = receiptHeader.getNoEvidenceField().getText();
+                Integer evidenceId = evidenceController.addEvidence(new EvidenceEntity(evidenceText));
+                JDateChooser dateChooserHeader = receiptHeader.getDateChooser();
 
-            List<ProductInEntity> productInList = receiptionProductsTable.getTableModel().getDataVector().stream()
-                    .map(row -> {
-                        Vector<?> rowData = (Vector<?>) row;
-                        ProductInEntity productIn = new ProductInEntity();
+                List<ProductInEntity> productInList = receiptionProductsTable.getTableModel().getDataVector().stream()
+                        .map(row -> {
+                            Vector<?> rowData = (Vector<?>) row;
+                            ProductInEntity productIn = new ProductInEntity();
 
-                        try {
-                            productIn.setProductId(Integer.parseInt(rowData.get(0).toString()));
-                            productIn.setVendorId(vendor.getId());
-                            productIn.setEvidenceId(evidenceId);
-                            productIn.setDate(dateChooserHeader.getDate());
-                            productIn.setQuantity(Integer.parseInt(rowData.get(3).toString()));
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
+                            try {
+                                productIn.setProductId(Integer.parseInt(rowData.get(0).toString()));
+                                productIn.setVendorId(vendor.getId());
+                                productIn.setEvidenceId(evidenceId);
+                                productIn.setDate(dateChooserHeader.getDate());
+                                productIn.setQuantity(Integer.parseInt(rowData.get(3).toString()));
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                            }
 
-                        return productIn;
-                    })
-                    .collect(Collectors.toList());
+                            return productIn;
+                        })
+                        .collect(Collectors.toList());
 
-            if (productInList.size() > 0) {
-                productInList.forEach(productIn -> {
-                    ProductInEntity productInEntity = new ProductInEntity(productIn.getProductId(), productIn.getVendorId(), productIn.getEvidenceId(), productIn.getDate(), productIn.getQuantity());
-                    ProductEntity product = new ProductEntity();
-                    ProductEntity tempProduct = productController.getProductById(productIn.getProductId());
-                    Integer tempStock = tempProduct.getStock();
-                    tempStock += productIn.getQuantity();
+                if (productInList.size() > 0) {
+                    productInList.forEach(productIn -> {
+                        ProductInEntity productInEntity = new ProductInEntity(productIn.getProductId(), productIn.getVendorId(), productIn.getEvidenceId(), productIn.getDate(), productIn.getQuantity());
+                        ProductEntity product = new ProductEntity();
+                        ProductEntity tempProduct = productController.getProductById(productIn.getProductId());
+                        Integer tempStock = tempProduct.getStock();
+                        tempStock += productIn.getQuantity();
 
-                    product.setId(productIn.getProductId());
-                    product.setStock(tempStock);
+                        product.setId(productIn.getProductId());
+                        product.setStock(tempStock);
 
-                    productInController.addProductIn(productInEntity);
-                    productController.updateStockProduct(product);
+                        productInController.addProductIn(productInEntity);
+                        productController.updateStockProduct(product);
 
-                });
-            } else {
-                System.out.println("Data has doesn't exist");
+                    });
+                } else {
+                    System.out.println("Data has doesn't exist");
+                }
             }
-
+            receiptionProductsTable.getTableModel().setRowCount(0);
+            receiptHeader.clearFields();
         } else {
             receiptionProductsTable.getTableModel().setRowCount(0);
             receiptHeader.clearFields();

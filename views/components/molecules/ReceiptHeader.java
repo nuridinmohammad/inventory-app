@@ -78,7 +78,7 @@ public class ReceiptHeader extends JPanel {
 
 //        productChooser = new JPanel(new GridLayout(1, 2));
 //        choosenProductPanel = createChoosePanel(" . . . ");
-        chooseProductsButton = createButton(" . . . ", true);
+        chooseProductsButton = createButton(" [ + ] ", true);
         configureButton(chooseProductsButton);
 //        choosenProductPanel.add(chooseProductsButton);
 //        productChooser.add(choosenProductPanel);
@@ -94,7 +94,7 @@ public class ReceiptHeader extends JPanel {
         containerPanel.add(createLabeledPanel("Received from", vendorChooser));
         containerPanel.add(createLabeledPanel("No evidence", noEvidenceField));
 //        containerPanel.add(createLabeledPanel("Qty", amountSpinner));
-        containerPanel.add(createButtonPanel(null, new JLabel("Choose product"), chooseProductsButton));
+        containerPanel.add(createButtonPanel(null, new JLabel("Add product"), chooseProductsButton));
 
 //        addProductInButton.addActionListener(e -> onAddProductIn());
 //        cancelProductInButton.addActionListener(e -> clearFields());
@@ -302,24 +302,26 @@ public class ReceiptHeader extends JPanel {
         );
 
         if (result == JOptionPane.OK_OPTION) {
-            this.selectedProduct = this.productTable.getSelectedProduct();
-            ProductEntity product = (ProductEntity) this.selectedProduct;
+            if (productTable.getSelectedProduct() != null) {
+                this.selectedProduct = this.productTable.getSelectedProduct();
+                ProductEntity product = (ProductEntity) this.selectedProduct;
 
-            List<Object[]> tableData = model.getDataVector().stream()
-                    .map(row -> ((Vector<?>) row).toArray())
-                    .collect(Collectors.toList());
+                List<Object[]> tableData = model.getDataVector().stream()
+                        .map(row -> ((Vector<?>) row).toArray())
+                        .collect(Collectors.toList());
 
-            Object tempProductCode = null;
-            for (Object[] item : tableData) {
-                if (item[1].equals(product.getProductCode())) {
-                    showWarning("Product already exists in the table");
-                    tempProductCode = item[0];
-                    break;
+                Object tempProductCode = null;
+                for (Object[] item : tableData) {
+                    if (item[1].equals(product.getProductCode())) {
+                        showWarning("Product already exists in the table");
+                        tempProductCode = item[0];
+                        break;
+                    }
                 }
-            }
 
-            if (tempProductCode == null) {
-                model.addRow(new Object[]{product.getId(), product.getProductCode(), product.getName(), product.getStock()});
+                if (tempProductCode == null) {
+                    model.addRow(new Object[]{product.getId(), product.getProductCode(), product.getName(), product.getStock()});
+                }
             }
         }
 
@@ -336,7 +338,5 @@ public class ReceiptHeader extends JPanel {
     public JDateChooser getDateChooser() {
         return dateChooser;
     }
-    
-    
 
 }

@@ -13,10 +13,45 @@ public class VendorDAOImpl implements VendorDAO {
     @Override
     public void addVendor(VendorEntity vendor) throws SQLException {
         String sql = "INSERT INTO vendors (name, address) VALUES (?, ?)";
-        try (PreparedStatement pstmt = Database.getConnection().prepareStatement(sql)) {
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, vendor.getName());
             pstmt.setString(2, vendor.getAddress());
             pstmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -95,21 +130,118 @@ public class VendorDAOImpl implements VendorDAO {
 
     @Override
     public void updateVendor(VendorEntity vendor) throws SQLException {
-        String sql = "UPDATE vendors SET name = ?, address = ? WHERE id = ?";
-        try (PreparedStatement pstmt = Database.getConnection().prepareStatement(sql)) {
-            pstmt.setString(1, vendor.getName());
-            pstmt.setString(2, vendor.getAddress());
-            pstmt.setInt(3, vendor.getId());
-            pstmt.executeUpdate();
+        String selectSql = "SELECT id FROM vendors WHERE id = ? FOR UPDATE";
+        String updateSql = "UPDATE vendors SET name = ?, address = ? WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement updateStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, vendor.getId());
+            selectStmt.executeQuery();
+
+            updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setString(1, vendor.getName());
+            updateStmt.setString(2, vendor.getAddress());
+            updateStmt.setInt(3, vendor.getId());
+            updateStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (updateStmt != null) {
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public void deleteVendor(Integer id) throws SQLException {
-        String sql = "DELETE FROM vendors WHERE id = ?";
-        try (PreparedStatement pstmt = Database.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            pstmt.executeUpdate();
+        String selectSql = "SELECT id FROM vendors WHERE id = ? FOR UPDATE";
+        String deleteSql = "DELETE FROM vendors WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement deleteStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);  
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, id);
+            selectStmt.executeQuery();  
+            
+            deleteStmt = conn.prepareStatement(deleteSql);
+            deleteStmt.setInt(1, id);
+            deleteStmt.executeUpdate();
+
+            conn.commit();  
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();  
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteStmt != null) {
+                try {
+                    deleteStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
 }

@@ -12,15 +12,58 @@ public class CategoryDAOImpl implements CategoryDAO {
     @Override
     public Integer addCategory(CategoryEntity category) throws SQLException {
         String sql = "INSERT INTO categories (name) VALUES (?)";
-        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, category.getName());
-            stmt.executeUpdate();
 
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet generatedKeys = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            stmt.setString(1, category.getName());
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                generatedKeys = stmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
+                    conn.commit();
                     return generatedKeys.getInt(1);
-                } else {
-                    throw new SQLException("Creating category failed, no ID obtained.");
+                }
+            }
+            conn.rollback();
+            throw new SQLException("Creating category failed, no ID obtained.");
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (generatedKeys != null) {
+                try {
+                    generatedKeys.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -56,20 +99,117 @@ public class CategoryDAOImpl implements CategoryDAO {
 
     @Override
     public void updateCategory(CategoryEntity category) throws SQLException {
-        String sql = "UPDATE categories SET name = ? WHERE id = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, category.getName());
-            stmt.setInt(2, category.getId());
-            stmt.executeUpdate();
+        String selectSql = "SELECT id FROM categories WHERE id = ? FOR UPDATE";
+        String updateSql = "UPDATE categories SET name = ? WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement updateStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, category.getId());
+            selectStmt.executeQuery();
+
+            updateStmt = conn.prepareStatement(updateSql);
+            updateStmt.setString(1, category.getName());
+            updateStmt.setInt(2, category.getId());
+            updateStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (updateStmt != null) {
+                try {
+                    updateStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     @Override
     public void deleteCategory(Integer id) throws SQLException {
-        String sql = "DELETE FROM categories WHERE id = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
+        String selectSql = "SELECT id FROM categories WHERE id = ? FOR UPDATE";
+        String deleteSql = "DELETE FROM categories WHERE id = ?";
+
+        Connection conn = null;
+        PreparedStatement selectStmt = null;
+        PreparedStatement deleteStmt = null;
+
+        try {
+            conn = Database.getConnection();
+            conn.setAutoCommit(false);
+
+            selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setInt(1, id);
+            selectStmt.executeQuery();
+
+            deleteStmt = conn.prepareStatement(deleteSql);
+            deleteStmt.setInt(1, id);
+            deleteStmt.executeUpdate();
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw e;
+        } finally {
+            if (selectStmt != null) {
+                try {
+                    selectStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (deleteStmt != null) {
+                try {
+                    deleteStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
 }

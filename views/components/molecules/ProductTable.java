@@ -6,6 +6,8 @@ import com.multibahana.inventoryapp.daoimplements.CategoryDAOImpl;
 import com.multibahana.inventoryapp.daoimplements.ProductDAOImpl;
 import com.multibahana.inventoryapp.entities.CategoryEntity;
 import com.multibahana.inventoryapp.entities.ProductEntity;
+import com.multibahana.inventoryapp.utils.CurrencyDocumentFilter;
+import com.multibahana.inventoryapp.utils.StringUtil;
 import com.multibahana.inventoryapp.views.components.atoms.PopRowMenu;
 
 import javax.swing.*;
@@ -17,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AbstractDocument;
 
 public class ProductTable extends JPanel {
 
@@ -136,7 +139,8 @@ public class ProductTable extends JPanel {
         if (priceObj instanceof Double) {
             price = (Double) priceObj;
         } else if (priceObj instanceof String) {
-            price = Double.parseDouble((String) priceObj);
+            String priceText = ((String) priceObj).replaceAll("[^\\d]", "");
+            price = Double.parseDouble(priceText);
         }
 
         CategoryEntity categoryEntity = (CategoryEntity) table.getValueAt(rowIndex, 6);
@@ -149,7 +153,8 @@ public class ProductTable extends JPanel {
         if (sellPriceObj instanceof Double) {
             sellPrice = (Double) sellPriceObj;
         } else if (sellPriceObj instanceof String) {
-            sellPrice = Double.parseDouble((String) sellPriceObj);
+            String sellPriceText = ((String) sellPriceObj).replaceAll("[^\\d]", "");
+            sellPrice = Double.parseDouble(sellPriceText);
         }
 
         return new ProductEntity(id, name, price, stock, categoryEntity.getId(), productCode, sellPrice);
@@ -202,8 +207,8 @@ public class ProductTable extends JPanel {
                 product.getId(),
                 product.getProductCode(),
                 product.getName(),
-                product.getPrice(),
-                product.getSellPrice(),
+                StringUtil.formatAsRupiah(product.getPrice()),
+                StringUtil.formatAsRupiah(product.getSellPrice()),
                 product.getStock(),
                 categoryName
             };
@@ -238,8 +243,8 @@ public class ProductTable extends JPanel {
         Integer id = (Integer) table.getValueAt(selectedRow, 0);
         String productCode = (String) table.getValueAt(selectedRow, 1);
         String defaultName = table.getValueAt(selectedRow, 2) != null ? table.getValueAt(selectedRow, 2).toString() : "";
-        Double defaultPrice = table.getValueAt(selectedRow, 3) != null ? Double.parseDouble(table.getValueAt(selectedRow, 3).toString()) : 0.0;
-        Double defaultSellPrice = table.getValueAt(selectedRow, 4) != null ? Double.parseDouble(table.getValueAt(selectedRow, 4).toString()) : 0.0;
+        Double defaultPrice = table.getValueAt(selectedRow, 3) != null ? Double.parseDouble(table.getValueAt(selectedRow, 3).toString().replaceAll("[^\\d]", "")) : 0.0;
+        Double defaultSellPrice = table.getValueAt(selectedRow, 4) != null ? Double.parseDouble(table.getValueAt(selectedRow, 4).toString().replaceAll("[^\\d]", "")) : 0.0;
         int defaultStock = (Integer) table.getValueAt(selectedRow, 5);
 
         while (true) {
@@ -261,29 +266,32 @@ public class ProductTable extends JPanel {
             nameField.setFont(font);
             nameField.setBorder(padding);
 
-            JTextField priceField = new JTextField(Double.toString(defaultPrice));
+            JTextField priceField = new JTextField(StringUtil.formatAsRupiahWithoutPre(defaultPrice));
             priceField.setFont(font);
             priceField.setBorder(padding);
+            AbstractDocument priceDoc = (AbstractDocument) priceField.getDocument();
+            priceDoc.setDocumentFilter(new CurrencyDocumentFilter());
 
-            JTextField sellPriceField = new JTextField(Double.toString(defaultSellPrice));
+            JTextField sellPriceField = new JTextField(StringUtil.formatAsRupiahWithoutPre(defaultSellPrice));
             sellPriceField.setFont(font);
             sellPriceField.setBorder(padding);
+            AbstractDocument sellPriceDoc = (AbstractDocument) sellPriceField.getDocument();
+            sellPriceDoc.setDocumentFilter(new CurrencyDocumentFilter());
 
             /*JSpinner stockSpinner = new JSpinner(new SpinnerNumberModel(defaultStock, 0, Integer.MAX_VALUE, 1));
             stockSpinner.setFont(font);
             stockSpinner.setEnabled(false);
             stockSpinner.setEditor(null);
             stockSpinner.setBorder(padding);*/
-            
             JComboBox<CategoryEntity> categoryComboBox = createCategoryComboBox(selectedRow);
 
             editPanel.add(new JLabel("Product code"));
             editPanel.add(productCodeField);
             editPanel.add(new JLabel("Name"));
             editPanel.add(nameField);
-            editPanel.add(new JLabel("Buy price"));
+            editPanel.add(new JLabel("Buy price (Rp. )"));
             editPanel.add(priceField);
-            editPanel.add(new JLabel("Sell price"));
+            editPanel.add(new JLabel("Sell price (Rp. )"));
             editPanel.add(sellPriceField);
             /*  editPanel.add(new JLabel("Stock"));
             editPanel.add(stockSpinner);*/
@@ -301,8 +309,8 @@ public class ProductTable extends JPanel {
             if (result == JOptionPane.OK_OPTION) {
                 try {
                     String newName = nameField.getText().trim();
-                    String priceText = priceField.getText().trim();
-                    String sellPriceText = sellPriceField.getText().trim();
+                    String priceText = priceField.getText().replaceAll("[^\\d]", "").trim();
+                    String sellPriceText = sellPriceField.getText().replaceAll("[^\\d]", "").trim();
                     Integer stock = (Integer) 0;
                     CategoryEntity categoryEntity = (CategoryEntity) categoryComboBox.getSelectedItem();
 
@@ -351,11 +359,11 @@ public class ProductTable extends JPanel {
 
                     ProductEntity updatedProduct = new ProductEntity(id, newName, newPrice, stock, categoryEntity.getId(), productCode, newSellPrice);
                     productController.updateProduct(updatedProduct);
-                    
+
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     model.setValueAt(newName, selectedRow, 2);
-                    model.setValueAt(newPrice, selectedRow, 3);
-                    model.setValueAt(newSellPrice, selectedRow, 4);
+                    model.setValueAt(StringUtil.formatAsRupiah(newPrice), selectedRow, 3);
+                    model.setValueAt(StringUtil.formatAsRupiah(newSellPrice), selectedRow, 4);
                     model.setValueAt(stock, selectedRow, 5);
                     model.setValueAt(categoryEntity, selectedRow, 6);
 

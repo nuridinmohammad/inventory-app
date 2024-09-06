@@ -1,5 +1,7 @@
 package com.multibahana.inventoryapp.utils;
 
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,6 +40,24 @@ public class StringUtil {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    public static String formatAsRupiah(double amount) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        currencyFormat.setMaximumFractionDigits(0);
+        currencyFormat.setGroupingUsed(true);
+
+        String formattedAmount = currencyFormat.format(amount).replace("Rp", "").trim();
+        return "Rp. " + formattedAmount;
+    }
+    
+    public static String formatAsRupiahWithoutPre(double amount) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+        currencyFormat.setMaximumFractionDigits(0);
+        currencyFormat.setGroupingUsed(true);
+
+        String formattedAmount = currencyFormat.format(amount).replace("Rp", "").trim();
+        return formattedAmount;
     }
 
 }
